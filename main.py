@@ -1,11 +1,20 @@
+# Changes 21/7/2026:
+# Added losing screen and play again button
+# Fixed several crashes
+# Notes:
+# The play again button trigger under mouse button clicks needs to be updated \
+# as more things are added to reset the game back to 0
+
 import sys
 import pygame as py
 import configs
 
 py.init()
 
-money = 0
-money_counter_font = py.font.SysFont(None, 55)
+paused = False
+money = 1
+font = py.font.SysFont(None, configs.SMALL_FONT_SIZE)
+large_font = py.font.SysFont(None, configs.LARGE_FONT_SIZE)
 
 # Load the static background image and define the base fill colour
 background_image = py.image.load('background.bmp')
@@ -63,6 +72,20 @@ menu_close_button = py.Rect(menu.right - 120, menu.bottom - 60, 100, 40)
 
 # Handler for inputs
 while running:
+    if money == 0 or paused == True:
+        paused = True
+        screen.fill((255, 0, 0))
+        losing_text = large_font.render("You lose!", True, (0, 0, 0))
+        losing_text_rect = losing_text.get_rect(midtop=(width // 2, 20))
+        play_again_button = py.Rect(0, 0, 400, 100)
+        play_again_button.midtop = (width // 2, 640)
+        play_again_button_text = font.render("Play Again", True, (0, 0, 0))
+        play_again_text_rect = play_again_button_text.get_rect(center=play_again_button.center)
+         # Rectangles are super usefull use these for positioning stuff instead of just guessing
+        py.draw.rect(screen, (0, 200, 0), play_again_button)
+        screen.blit(losing_text, losing_text_rect)
+        screen.blit(play_again_button_text, play_again_text_rect)
+        py.display.flip()
 
     for event in py.event.get():
         if event.type == py.QUIT:
@@ -84,32 +107,49 @@ while running:
                     menu_open = True
 
                 if coal_button_rect.collidepoint(event.pos):
-                    pass
-        
-    screen.fill(background_colour)
+                    if money > 1:
+                        money -= 1
+                if paused == True:
+                    # The play_again button needs to be updated when we have more variables to reset everything back to step 1
+                    if play_again_button.collidepoint(event.pos):
+                        money = 1
+                        paused = False
+        # Handler for keyboard inputs
+        if event.type == py.KEYDOWN:
 
-    screen.blit(background_image, (width -679, 0))
+            # Developer cheatcode for testing money decreasing
+            if event.key == py.K_9:
+                money -= 1
+            
+            # Developer cheatcode for testing loseing 
+            if event.key == py.K_8:
+                paused = True
 
-    screen.blit(tree_img, tree_button_rect)
+    if paused == False:
+        screen.fill(background_colour)
 
-    screen.blit(parliment_button, parliment_button_rect)
+        screen.blit(background_image, (width -679, 0))
 
-    screen.blit(coal_button_img, coal_button_rect)
+        screen.blit(tree_img, tree_button_rect)
 
-    py.draw.line(screen, (0, 0, 0), (width // 3.1, 0), (width // 3.1, height), 20)
+        screen.blit(parliment_button, parliment_button_rect)
 
-    money_counter = money_counter_font.render(f"Money: {money}", True, (0, 0, 0))
-    screen.blit(money_counter, (20, 50))
+        screen.blit(coal_button_img, coal_button_rect)
 
-    if menu_open:
-        py.draw.rect(screen, (255, 255, 255), menu)
-        py.draw.rect(screen, (0, 0, 0), menu, 5)
+        py.draw.line(screen, (0, 0, 0), (width // 3.1, 0), (width // 3.1, height), 20)
 
-        menu_title = money_counter_font.render("Parliment", True, (0, 0, 0))
-        screen.blit(menu_title, (menu.x + 20, menu.y + 20))
+        money_counter = font.render(f"Money: {money}", True, (0, 0, 0))
+        screen.blit(money_counter, (20, 50))
 
-        py.draw.rect(screen, (255, 100, 100), menu_close_button)
-        py.draw.rect(screen, (0, 0, 0), menu_close_button, 2)
+        if menu_open:
+            py.draw.rect(screen, (255, 255, 255), menu)
+            py.draw.rect(screen, (0, 0, 0), menu, 5)
+
+            menu_title = font.render("Parliment", True, (0, 0, 0))
+            screen.blit(menu_title, (menu.x + 20, menu.y + 20))
+
+            py.draw.rect(screen, (255, 100, 100), menu_close_button)
+            py.draw.rect(screen, (0, 0, 0), menu_close_button, 2)
 
     py.display.flip()
 
