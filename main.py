@@ -43,7 +43,13 @@ parliment_x = width - 1000
 parliment_y = 500
 
 #building button
-coal_button = py.Rect(150, 120, 100, 50)
+coal_scale = 0.5
+coal_button_img = py.transform.scale(
+    coal_plant,
+    (int(coal_plant.get_width() * coal_scale), int(coal_plant.get_height() * coal_scale)),
+)
+coal_button_img.set_colorkey(TRANSPARENT_COLOUR)
+coal_button_rect = coal_button_img.get_rect(topleft=(5, 100))
 
 tree_button_rect = tree_img.get_rect(topleft=(tree_x, tree_y))
 parliment_button_rect = parliment_button.get_rect(topleft=(parliment_x, parliment_y))
@@ -76,6 +82,9 @@ while running:
 
                 if parliment_button_rect.collidepoint(event.pos):
                     menu_open = True
+
+                if coal_button_rect.collidepoint(event.pos):
+                    pass
         
     screen.fill(background_colour)
 
@@ -84,6 +93,8 @@ while running:
     screen.blit(tree_img, tree_button_rect)
 
     screen.blit(parliment_button, parliment_button_rect)
+
+    screen.blit(coal_button_img, coal_button_rect)
 
     py.draw.line(screen, (0, 0, 0), (width // 3.1, 0), (width // 3.1, height), 20)
 
