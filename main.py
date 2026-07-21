@@ -1,10 +1,8 @@
-# Changes 21/7/2026:
-# Added losing screen and play again button
-# Fixed several crashes
-# Notes:
-# The play again button trigger under mouse button clicks needs to be updated \
-# as more things are added to reset the game back to 0
-
+# how to update
+# 1) git add .
+# 2) git commit -m "put update notes here"
+# 3) git push
+# pull if it tells you to its just git pull
 import sys
 import pygame as py
 import configs
