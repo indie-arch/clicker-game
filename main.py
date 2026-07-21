@@ -1,4 +1,5 @@
 # how to update
+# 0) save the files normally in the enditor tab
 # 1) git add .
 # 2) git commit -m "put update notes here"
 # 3) git push
