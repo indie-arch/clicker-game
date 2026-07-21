@@ -52,7 +52,7 @@ running = True
 
 # Menu graphics
 menu_open = False
-menu = py.Rect((width // 4, height // 4, width // 2, height // 2))
+menu = py.Rect((width // 6, height // 6, 800, 600))
 menu_close_button = py.Rect(menu.right - 120, menu.bottom - 60, 100, 40)
 
 # Handler for inputs
