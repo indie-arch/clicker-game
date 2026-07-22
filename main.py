@@ -27,6 +27,7 @@ background_image = py.image.load('background.bmp')
 tree_img = py.image.load('tree-fix.bmp')
 parliment_button = py.image.load('parliment.bmp')
 coal_plant = py.image.load('coal.bmp')
+minecart_img = py.image.load('minecart.bmp')
 settings_img = py.image.load('settings.bmp')
 
 TRANSPARENT_COLOUR = (0, 0, 0)
@@ -75,6 +76,14 @@ settings_img = py.transform.scale(
 settings_img.set_colorkey((255, 0, 0))
 settings_button_rect = settings_img.get_rect(bottomright=(width - 10, height - 10))
 
+minecart_scale = 0.13
+minecart_img = py.transform.scale(
+    minecart_img,
+    (int(minecart_img.get_width() * minecart_scale), int(minecart_img.get_height() * minecart_scale)),
+)
+minecart_img.set_colorkey((255, 0, 0))
+minecart_rect = minecart_img.get_rect(topleft=(coal_button_rect.x + 8, coal_button_rect.y + coal_button_rect.height - 30))
+
 tree_button_rect = tree_img.get_rect(topleft=(tree_x, tree_y))
 parliment_button_rect = parliment_button.get_rect(topleft=(parliment_x, parliment_y))
 coal_plant_rect = coal_plant.get_rect(topleft=(width - 800, 300))
@@ -85,10 +94,6 @@ menu_open = False
 menu = py.Rect((width // 6, height // 6, 800, 600))
 menu_close_button = py.Rect(menu.right - 120, menu.bottom - 60, 100, 40)
 
-# Settings menu graphics
-settings_open = False
-settings = py.Rect((width // 6, height // 6, 800, 600))
-settings_close_button = py.Rect(settings.right - 120, settings.bottom - 60, 100, 40)
 # Handler for inputs
 while running:
     if money <= 0 or paused == True:
@@ -129,25 +134,13 @@ while running:
 
                 if parliment_button_rect.collidepoint(event.pos):
                     menu_open = True
-                    settings_open = False
-                
-                if settings_button_rect.collidepoint(event.pos):
-                    settings_open = True
-                    menu_open = False
-
-                if settings_open:
-                    if settings_close_button.collidepoint(event.pos):
-                        settings_open = False
 
                 if coal_button_rect.collidepoint(event.pos):
                     if money > coal_plant_cost:
                         money -= coal_plant_cost
                         #CRUCIAL COAL FUNCTIONALITY FOR COAL IMPLEMENTATION
                         coal_plant_count += 1
-                        if configs.HARD_MODE == True:
-                            coal_plant_cost = coal_plant_cost * coal_plant_count + 1
-                        if configs.HARD_MODE == False:
-                            coal_plant_cost = coal_plant_cost + coal_plant_cost
+                        coal_plant_cost = coal_plant_cost * coal_plant_count + 1
                         
                 if paused == True:
                     # The play_again button needs to be updated when we have more variables to reset everything back to step 1
@@ -179,6 +172,8 @@ while running:
 
         screen.blit(coal_button_img, coal_button_rect)
 
+        screen.blit(minecart_img, minecart_rect)
+
         screen.blit(settings_img, settings_button_rect)
 
         py.draw.line(screen, (0, 0, 0), (width // 3.1, 0), (width // 3.1, height), 20)
@@ -206,15 +201,6 @@ while running:
             py.draw.rect(screen, (255, 100, 100), menu_close_button)
             py.draw.rect(screen, (0, 0, 0), menu_close_button, 2)
 
-        if settings_open:
-            py.draw.rect(screen, (255, 255, 255), menu)
-            py.draw.rect(screen, (0, 0, 0), menu, 5)
-
-            settings_title = font.render("Settings", True, (0, 0, 0))
-            screen.blit(settings_title, (settings.x + 20, settings.y + 20))
-
-            py.draw.rect(screen, (255, 100, 100), settings_close_button)
-            py.draw.rect(screen, (0, 0, 0), settings_close_button, 2)
     py.display.flip()
 
 py.quit()
