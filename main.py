@@ -14,6 +14,9 @@ paused = False
 money = 1
 apposed = 435
 supporting = 0
+coal_income_event = py.USEREVENT + 1
+py.time.set_timer(coal_income_event,  1000)
+extrasmall_font = py.font.SysFont(None, configs.EXTRA_SMALL_FONT_SIZE)
 font = py.font.SysFont(None, configs.SMALL_FONT_SIZE)
 large_font = py.font.SysFont(None, configs.LARGE_FONT_SIZE)
 
@@ -90,7 +93,6 @@ while running:
         screen.blit(play_again_button_text, play_again_text_rect)
         py.display.flip()
         
-        money = money + coal_plant_count
 
     for event in py.event.get():
         if event.type == py.QUIT:
@@ -98,6 +100,10 @@ while running:
 
             # Handler for mouse button down events
             # Use this to handler clicks by checking the coordinantes here
+        if event.type == coal_income_event: 
+            if not paused:
+                money += coal_plant_count
+
         if event.type == py.MOUSEBUTTONDOWN:
             if event.button == 1: # Left click
                 # Menu subsection for inputs
@@ -123,6 +129,7 @@ while running:
                         money = 1
                         apposed = 435
                         supporting = 0
+                        coal_plant_count = 0
                         paused = False
         # Handler for keyboard inputs
         if event.type == py.KEYDOWN:
@@ -149,8 +156,8 @@ while running:
         py.draw.line(screen, (0, 0, 0), (width // 3.1, 0), (width // 3.1, height), 20)
 
         #coal plant text
-        coal_plant_info = font.render(f"Coal Plants: {coal_plant_count}", True, (0, 0, 0))
-        screen.blit(coal_plant_info, (100, 150))
+        coal_plant_info = extrasmall_font.render(f"Coal Plants: {coal_plant_count}", True, (0, 0, 0))
+        screen.blit(coal_plant_info, (140, 180))
 
         money_counter = font.render(f"Money: {money}", True, (0, 0, 0))
         screen.blit(money_counter, (20, 50))
