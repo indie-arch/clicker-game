@@ -12,6 +12,8 @@ py.init()
 
 paused = False
 money = 1
+apposed = 435
+supporting = 0
 font = py.font.SysFont(None, configs.SMALL_FONT_SIZE)
 large_font = py.font.SysFont(None, configs.LARGE_FONT_SIZE)
 
@@ -71,7 +73,7 @@ menu_close_button = py.Rect(menu.right - 120, menu.bottom - 60, 100, 40)
 
 # Handler for inputs
 while running:
-    if money == 0 or paused == True:
+    if money <= 0 or paused == True:
         paused = True
         screen.fill((255, 0, 0))
         losing_text = large_font.render("You lose!", True, (0, 0, 0))
@@ -112,6 +114,8 @@ while running:
                     # The play_again button needs to be updated when we have more variables to reset everything back to step 1
                     if play_again_button.collidepoint(event.pos):
                         money = 1
+                        apposed = 435
+                        supporting = 0
                         paused = False
         # Handler for keyboard inputs
         if event.type == py.KEYDOWN:
@@ -145,7 +149,11 @@ while running:
             py.draw.rect(screen, (0, 0, 0), menu, 5)
 
             menu_title = font.render("Parliment", True, (0, 0, 0))
+            negative_influence_counter = font.render(f"Apposed: {apposed}", True, (0, 0, 0))
+            positive_influence_counter = font.render(f"Supporting: {supporting}", True, (0, 0, 0))
             screen.blit(menu_title, (menu.x + 20, menu.y + 20))
+            screen.blit(positive_influence_counter, (menu.x + 20, menu.y + 55))
+            screen.blit(negative_influence_counter, (menu.x + 20, menu.y + 90))
 
             py.draw.rect(screen, (255, 100, 100), menu_close_button)
             py.draw.rect(screen, (0, 0, 0), menu_close_button, 2)
