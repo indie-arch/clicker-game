@@ -27,6 +27,7 @@ background_image = py.image.load('background.bmp')
 tree_img = py.image.load('tree-fix.bmp')
 parliment_button = py.image.load('parliment.bmp')
 coal_plant = py.image.load('coal.bmp')
+settings_img = py.image.load('settings.bmp')
 
 TRANSPARENT_COLOUR = (0, 0, 0)
 tree_img.set_colorkey(TRANSPARENT_COLOUR)
@@ -63,8 +64,16 @@ coal_button_img = py.transform.scale(
     coal_plant,
     (int(coal_plant.get_width() * coal_scale), int(coal_plant.get_height() * coal_scale)),
 )
-coal_button_img.set_colorkey(TRANSPARENT_COLOUR)
+coal_button_img.set_colorkey((255, 0, 0))
 coal_button_rect = coal_button_img.get_rect(topleft=(5, 100))
+
+settings_scale = 0.05
+settings_img = py.transform.scale(
+    settings_img,
+    (int(settings_img.get_width() * settings_scale), int(settings_img.get_height() * settings_scale)),
+)
+settings_img.set_colorkey((255, 0, 0))
+settings_button_rect = settings_img.get_rect(bottomright=(width - 10, height - 10))
 
 tree_button_rect = tree_img.get_rect(topleft=(tree_x, tree_y))
 parliment_button_rect = parliment_button.get_rect(topleft=(parliment_x, parliment_y))
@@ -153,6 +162,8 @@ while running:
         screen.blit(parliment_button, parliment_button_rect)
 
         screen.blit(coal_button_img, coal_button_rect)
+
+        screen.blit(settings_img, settings_button_rect)
 
         py.draw.line(screen, (0, 0, 0), (width // 3.1, 0), (width // 3.1, height), 20)
 
