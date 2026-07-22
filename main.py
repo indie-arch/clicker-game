@@ -156,7 +156,7 @@ while running:
         py.draw.line(screen, (0, 0, 0), (width // 3.1, 0), (width // 3.1, height), 20)
 
         #coal plant text
-        coal_plant_info = extrasmall_font.render(f"Coal Plants: {coal_plant_count}", True, (0, 0, 0))
+        coal_plant_info = extrasmall_font.render(f"Coal Plants: {coal_plant_count} \n Cost: {coal_plant_cost}", True, (0, 0, 0))
         screen.blit(coal_plant_info, (140, 180))
 
         money_counter = font.render(f"Money: {money}", True, (0, 0, 0))
