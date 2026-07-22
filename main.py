@@ -114,6 +114,7 @@ while running:
                 if coal_button_rect.collidepoint(event.pos):
                     if money > 10:
                         money -= 10
+                        #CRUCIAL COAL FUNCTIONALITY FOR COAL IMPLEMENTATION
                         coal_plant_count += 1
                         
                 if paused == True:
