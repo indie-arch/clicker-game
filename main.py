@@ -122,7 +122,10 @@ while running:
                         money -= coal_plant_cost
                         #CRUCIAL COAL FUNCTIONALITY FOR COAL IMPLEMENTATION
                         coal_plant_count += 1
-                        coal_plant_cost = coal_plant_cost * coal_plant_count + 1
+                        if configs.HARD_MODE == True:
+                            coal_plant_cost = coal_plant_cost * coal_plant_count + 1
+                        if configs.HARD_MODE == False:
+                            coal_plant_cost = coal_plant_cost + coal_plant_cost
                         
                 if paused == True:
                     # The play_again button needs to be updated when we have more variables to reset everything back to step 1
