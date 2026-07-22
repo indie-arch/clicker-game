@@ -14,6 +14,8 @@ paused = False
 money = 1
 apposed = 435
 supporting = 0
+coal_plant_count = 0
+coal_plant_cost = 10
 coal_income_event = py.USEREVENT + 1
 py.time.set_timer(coal_income_event,  1000)
 extrasmall_font = py.font.SysFont(None, configs.EXTRA_SMALL_FONT_SIZE)
@@ -54,8 +56,6 @@ tree_y = 50
 
 parliment_x = width - 1000
 parliment_y = 500
-
-coal_plant_count = 0
 
 #building button
 coal_scale = 0.5
@@ -118,10 +118,11 @@ while running:
                     menu_open = True
 
                 if coal_button_rect.collidepoint(event.pos):
-                    if money > 10:
-                        money -= 10
+                    if money > coal_plant_cost:
+                        money -= coal_plant_cost
                         #CRUCIAL COAL FUNCTIONALITY FOR COAL IMPLEMENTATION
                         coal_plant_count += 1
+                        coal_plant_cost = coal_plant_cost * coal_plant_count + 1
                         
                 if paused == True:
                     # The play_again button needs to be updated when we have more variables to reset everything back to step 1
