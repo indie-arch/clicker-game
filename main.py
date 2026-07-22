@@ -85,6 +85,10 @@ menu_open = False
 menu = py.Rect((width // 6, height // 6, 800, 600))
 menu_close_button = py.Rect(menu.right - 120, menu.bottom - 60, 100, 40)
 
+# Settings menu graphics
+settings_open = False
+settings = py.Rect((width // 6, height // 6, 800, 600))
+settings_close_button = py.Rect(settings.right - 120, settings.bottom - 60, 100, 40)
 # Handler for inputs
 while running:
     if money <= 0 or paused == True:
@@ -125,6 +129,13 @@ while running:
 
                 if parliment_button_rect.collidepoint(event.pos):
                     menu_open = True
+                
+                if settings_button_rect.collidepoint(event.pos):
+                    settings_open = True
+
+                if settings_open:
+                    if settings_close_button.collidepoint(event.pos):
+                        settings_open = False
 
                 if coal_button_rect.collidepoint(event.pos):
                     if money > coal_plant_cost:
@@ -193,6 +204,15 @@ while running:
             py.draw.rect(screen, (255, 100, 100), menu_close_button)
             py.draw.rect(screen, (0, 0, 0), menu_close_button, 2)
 
+        if settings_open:
+            py.draw.rect(screen, (255, 255, 255), menu)
+            py.draw.rect(screen, (0, 0, 0), menu, 5)
+
+            settings_title = font.render("Settings", True, (0, 0, 0))
+            screen.blit(settings_title, (settings.x + 20, settings.y + 20))
+
+            py.draw.rect(screen, (255, 100, 100), settings_close_button)
+            py.draw.rect(screen, (0, 0, 0), settings_close_button, 2)
     py.display.flip()
 
 py.quit()
