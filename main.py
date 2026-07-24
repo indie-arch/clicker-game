@@ -13,12 +13,19 @@ py.init()
 paused = False
 money = 1
 coal = 0
+coal_shortage = False
+coal_neutral = True
+coal_surplus = False
+coal_deficit = False
 apposed = 435
 supporting = 0
 coal_plant_count = 0
+coal_mine_count = 0
 coal_plant_cost = 10
 coal_income_event = py.USEREVENT + 1
 py.time.set_timer(coal_income_event,  1000)
+coal_mine_income_event = py.USEREVENT + 2
+py.time.set_timer(coal_mine_income_event, 1000)
 extrasmall_font = py.font.SysFont(None, configs.EXTRA_SMALL_FONT_SIZE)
 font = py.font.SysFont(None, configs.SMALL_FONT_SIZE)
 large_font = py.font.SysFont(None, configs.LARGE_FONT_SIZE)
@@ -129,6 +136,10 @@ while running:
                 money += coal_plant_count
                 coal -= coal_plant_count
 
+        if event.type == coal_mine_income_event:
+            if not paused:
+                coal += coal_mine_count
+
         if event.type == py.MOUSEBUTTONDOWN:
             if event.button == 1: # Left click
                 # Menu subsection for inputs
@@ -160,6 +171,11 @@ while running:
                             coal_plant_cost = coal_plant_cost * coal_plant_count + 1
                         if configs.HARD_MODE == False:
                             coal_plant_cost = coal_plant_cost + coal_plant_cost
+
+                if minecart_rect.collidepoint(event.pos):
+                    if money > 5:
+                        money -= 5
+                        coal_mine_count += 1
                         
                 if paused == True:
                     # The play_again button needs to be updated when we have more variables to reset everything back to step 1
@@ -169,7 +185,9 @@ while running:
                         supporting = 0
                         coal_plant_count = 0
                         coal = 0
+                        coal_shortage = False
                         paused = False
+                        coal_mine_count = 0
         # Handler for keyboard inputs
         if event.type == py.KEYDOWN:
 
@@ -188,6 +206,11 @@ while running:
             # Developer cheatcode for adding coal powerplants
             if event.key == py.K_6:
                 coal_plant_count += 1
+
+            # Developer cheatcode for adding coal powerplants
+            if event.key == py.K_5:
+                coal_mine_count += 1
+
     if paused == False:
         screen.fill(background_colour)
 
@@ -220,12 +243,41 @@ while running:
         resources_x = int(width // 3.1) + 18  # Same programing as the line that runs down the middile 
         resources_y = 455 # just minus this by like 20 for new resources
 
-        coal_count = font.render(f"Coal: {coal}", True, (0, 0, 0))
-        screen.blit(coal_count, (resources_x, resources_y))
-
         if coal <= -1:
-            coal = 1
+            coal_shortage = True
+            coal = 0
             coal_plant_count -= 1
+        elif coal >= 2 or coal_mine_count == coal_plant_count:
+            coal_shortage = False
+
+        # 2. Reset flags so only one alert displays at a time
+        coal_surplus = False
+        coal_deficit = False
+        coal_neutral = False
+
+        if coal_shortage:
+            pass 
+        elif coal_plant_count == coal_mine_count:
+            coal_neutral = True
+        elif coal_plant_count > coal_mine_count:
+            coal_deficit = True
+        elif coal_mine_count > coal_plant_count:
+            coal_surplus = True
+
+        coal_count = font.render(f"Coal: {coal}", True, (0, 0, 0))
+        coal_shortage_alert = font.render("Coal Shortage!", True, (255, 0, 0))
+        coal_neutral_alert = font.render("Coal Neutral!", True, (0, 0, 0))
+        coal_deficit_alert = font.render("Coal Deficit!", True, (255, 165, 0))
+        coal_surplus_alert = font.render("Coal Surplus!", True, (0, 255, 0))
+        screen.blit(coal_count, (resources_x, resources_y))
+        if coal_shortage == True:
+            screen.blit(coal_shortage_alert, (resources_x + 200, resources_y))
+        if coal_deficit == True:
+            screen.blit(coal_deficit_alert, (resources_x + 200, resources_y))
+        if coal_neutral == True:
+            screen.blit(coal_neutral_alert, (resources_x + 200, resources_y))
+        if coal_surplus == True:
+            screen.blit(coal_surplus_alert, (resources_x + 200, resources_y))
 
         if menu_open:
             py.draw.rect(screen, (255, 255, 255), menu)
