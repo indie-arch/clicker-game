@@ -127,6 +127,7 @@ while running:
         if event.type == coal_income_event: 
             if not paused:
                 money += coal_plant_count
+                coal -= coal_plant_count
 
         if event.type == py.MOUSEBUTTONDOWN:
             if event.button == 1: # Left click
@@ -151,7 +152,7 @@ while running:
                         settings_open = False
 
                 if coal_button_rect.collidepoint(event.pos):
-                    if money > coal_plant_cost:
+                    if money > coal_plant_cost and coal >= 1:
                         money -= coal_plant_cost
                         #CRUCIAL COAL FUNCTIONALITY FOR COAL IMPLEMENTATION
                         coal_plant_count += 1
@@ -167,6 +168,7 @@ while running:
                         apposed = 435
                         supporting = 0
                         coal_plant_count = 0
+                        coal = 0
                         paused = False
         # Handler for keyboard inputs
         if event.type == py.KEYDOWN:
@@ -179,6 +181,13 @@ while running:
             if event.key == py.K_8:
                 paused = True
 
+            # Developer cheatcode for adding coal
+            if event.key == py.K_7:
+                coal += 1
+
+            # Developer cheatcode for adding coal powerplants
+            if event.key == py.K_6:
+                coal_plant_count += 1
     if paused == False:
         screen.fill(background_colour)
 
@@ -213,6 +222,10 @@ while running:
 
         coal_count = font.render(f"Coal: {coal}", True, (0, 0, 0))
         screen.blit(coal_count, (resources_x, resources_y))
+
+        if coal <= -1:
+            coal = 1
+            coal_plant_count -= 1
 
         if menu_open:
             py.draw.rect(screen, (255, 255, 255), menu)
