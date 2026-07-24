@@ -1,5 +1,5 @@
 # how to update
-# 0) save the files normally in the enditor tab
+# 0) save the files normally in the editor tab
 # 1) git add .
 # 2) git commit -m "put update notes here"
 # 3) git push
@@ -12,6 +12,7 @@ py.init()
 
 paused = False
 money = 1
+coal = 0
 apposed = 435
 supporting = 0
 coal_plant_count = 0
@@ -198,11 +199,20 @@ while running:
         #coal plant text
         coal_plant_info = extrasmall_font.render(f"Coal Plants: {coal_plant_count}", True, (0, 0, 0))
         coal_plant_cost_info = extrasmall_font.render(f"Cost: {coal_plant_cost}", True, (0, 0, 0))
+        coal_cost = extrasmall_font.render("Coal Consumption: 1", True, (0, 0, 0))
         screen.blit(coal_plant_info, (140, 180))
         screen.blit(coal_plant_cost_info, (140, 210))
+        screen.blit(coal_cost, (140, 240))
 
         money_counter = font.render(f"Money: {money}", True, (0, 0, 0))
         screen.blit(money_counter, (20, 50))
+
+        # Resources go here:
+        resources_x = int(width // 3.1) + 18  # Same programing as the line that runs down the middile 
+        resources_y = 455 # just minus this by like 20 for new resources
+
+        coal_count = font.render(f"Coal: {coal}", True, (0, 0, 0))
+        screen.blit(coal_count, (resources_x, resources_y))
 
         if menu_open:
             py.draw.rect(screen, (255, 255, 255), menu)
