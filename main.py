@@ -93,6 +93,7 @@ running = True
 menu_open = False
 menu = py.Rect((width // 6, height // 6, 800, 600))
 menu_close_button = py.Rect(menu.right - 120, menu.bottom - 60, 100, 40)
+parliment_confirm_button = py.Rect(menu.x + 20, menu.bottom - 60, 100, 40)
 
 # Settings menu graphics
 settings_open = False
@@ -292,7 +293,9 @@ while running:
 
             py.draw.rect(screen, (255, 100, 100), menu_close_button)
             py.draw.rect(screen, (0, 0, 0), menu_close_button, 2)
-
+            py.draw.rect(screen, (100, 255, 100), parliment_confirm_button)
+            py.draw.rect(screen, (0, 0, 0), parliment_confirm_button, 2)
+            py.draw.line(screen, (0, 0, 0), (menu.x + 20, menu.y + 140), (menu.right - 20, menu.y + 140), 3)
         if settings_open:
             py.draw.rect(screen, (255, 255, 255), menu)
             py.draw.rect(screen, (0, 0, 0), menu, 5)
