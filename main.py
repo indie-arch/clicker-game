@@ -85,18 +85,12 @@ little_coal_button_img.set_colorkey((255, 0, 0))
 # Where the background image sits on screen, so plants only spawn on top of it
 background_rect = background_image.get_rect(topleft=(configs.SCREEN_WIDTH - 679, 0))
 
-# One random position per built coal plant so they stay put between frames
+# The furthest right/down a little plant can start and still fit on the background
+little_coal_max_x = background_rect.right - little_coal_button_img.get_width()
+little_coal_max_y = background_rect.bottom - little_coal_button_img.get_height()
+
+# Holds one random (x, y) per built coal plant so they stay in the same spot each frame
 coal_plant_positions = []
-
-
-def sync_coal_plant_positions(count):
-    """Add/remove random positions so we have exactly `count` of them."""
-    while len(coal_plant_positions) > count:
-        coal_plant_positions.pop()
-    while len(coal_plant_positions) < count:
-        x = random.randint(background_rect.left, background_rect.right - little_coal_button_img.get_width())
-        y = random.randint(background_rect.top, background_rect.bottom - little_coal_button_img.get_height())
-        coal_plant_positions.append((x, y))
 
 coal_button_img.set_colorkey((255, 0, 0))
 coal_button_rect = coal_button_img.get_rect(topleft=(5, 100))
@@ -263,7 +257,18 @@ while running:
         screen.blit(coal_cost, (140, 240))
         
         #little plants
-        sync_coal_plant_positions(coal_plant_count)
+        # Give any brand new plant a random spot on the background image
+        while len(coal_plant_positions) < coal_plant_count:
+            coal_plant_positions.append((
+                random.randint(background_rect.left, little_coal_max_x),
+                random.randint(background_rect.top, little_coal_max_y),
+            ))
+
+        # Forget spots for plants we lost (coal shortage or a game reset)
+        while len(coal_plant_positions) > coal_plant_count:
+            coal_plant_positions.pop()
+
+        # Draw every plant at its saved spot
         for position in coal_plant_positions:
             screen.blit(little_coal_button_img, position)
 
