@@ -7,6 +7,7 @@
 import sys
 import pygame as py
 import configs
+import random
 
 py.init()
 
@@ -73,6 +74,30 @@ coal_button_img = py.transform.scale(
     coal_plant,
     (int(coal_plant.get_width() * coal_scale), int(coal_plant.get_height() * coal_scale)),
 )
+
+little_coal_scale = 0.2
+little_coal_button_img = py.transform.scale(
+    coal_plant,
+    (int(coal_plant.get_width() * little_coal_scale), int(coal_plant.get_height() * little_coal_scale)),
+)
+little_coal_button_img.set_colorkey((255, 0, 0))
+
+# Where the background image sits on screen, so plants only spawn on top of it
+background_rect = background_image.get_rect(topleft=(configs.SCREEN_WIDTH - 679, 0))
+
+# One random position per built coal plant so they stay put between frames
+coal_plant_positions = []
+
+
+def sync_coal_plant_positions(count):
+    """Add/remove random positions so we have exactly `count` of them."""
+    while len(coal_plant_positions) > count:
+        coal_plant_positions.pop()
+    while len(coal_plant_positions) < count:
+        x = random.randint(background_rect.left, background_rect.right - little_coal_button_img.get_width())
+        y = random.randint(background_rect.top, background_rect.bottom - little_coal_button_img.get_height())
+        coal_plant_positions.append((x, y))
+
 coal_button_img.set_colorkey((255, 0, 0))
 coal_button_rect = coal_button_img.get_rect(topleft=(5, 100))
 
@@ -236,6 +261,11 @@ while running:
         screen.blit(coal_plant_info, (140, 180))
         screen.blit(coal_plant_cost_info, (140, 210))
         screen.blit(coal_cost, (140, 240))
+        
+        #little plants
+        sync_coal_plant_positions(coal_plant_count)
+        for position in coal_plant_positions:
+            screen.blit(little_coal_button_img, position)
 
         money_counter = font.render(f"Money: {money}", True, (0, 0, 0))
         screen.blit(money_counter, (20, 50))
