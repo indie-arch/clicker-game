@@ -71,7 +71,7 @@ tree_y = 50
 parliment_x = width - 1000
 parliment_y = 500
 
-#building button
+#loading and scaling images for buttons
 coal_scale = 0.5
 coal_button_img = py.transform.scale(
     coal_plant,
@@ -84,6 +84,17 @@ little_coal_button_img = py.transform.scale(
     (int(coal_plant.get_width() * little_coal_scale), int(coal_plant.get_height() * little_coal_scale)),
 )
 little_coal_button_img.set_colorkey((255, 0, 0))
+
+# Keep an unscaled copy of the datacenter art around so we can also make a
+# "little" version later, same as coal_plant is kept unscaled for little_coal_button_img
+datacenter_img = py.image.load('datacenter.bmp')
+
+little_datacenter_scale = 0.15
+little_datacenter_button_img = py.transform.scale(
+    datacenter_img,
+    (int(datacenter_img.get_width() * little_datacenter_scale), int(datacenter_img.get_height() * little_datacenter_scale)),
+)
+little_datacenter_button_img.set_colorkey((255, 0, 0))
 
 datacenter_scale = 0.35
 datacenter_button_img = py.transform.scale(
@@ -100,6 +111,9 @@ little_coal_max_y = background_rect.bottom - little_coal_button_img.get_height()
 
 # Holds one random (x, y) per built coal plant so they stay in the same spot each frame
 coal_plant_positions = []
+
+# Holds one (x, y) per built datacenter, spawned on top of the coal plants
+datacenter_positions = []
 
 coal_button_img.set_colorkey((255, 0, 0))
 coal_button_rect = coal_button_img.get_rect(topleft=(5, 100))
@@ -149,7 +163,6 @@ while running:
         play_again_button.midtop = (width // 2, 640)
         play_again_button_text = font.render("Play Again", True, (0, 0, 0))
         play_again_text_rect = play_again_button_text.get_rect(center=play_again_button.center)
-         # Rectangles are super usefull use these for positioning stuff instead of just guessing
         py.draw.rect(screen, (0, 200, 0), play_again_button)
         screen.blit(losing_text, losing_text_rect)
         screen.blit(play_again_button_text, play_again_text_rect)
@@ -246,6 +259,10 @@ while running:
             # Developer cheatcode for adding coal powerplants
             if event.key == py.K_5:
                 coal_mine_count += 1
+                
+            #cheatcode for adding datacenters
+            if event.key == py.K_4:
+                datacenter_count += 1
 
     if paused == False:
         screen.fill(background_colour)
@@ -296,6 +313,26 @@ while running:
         # Draw every plant at its saved spot
         for position in coal_plant_positions:
             screen.blit(little_coal_button_img, position)
+
+        #little datacenters
+        # Spawn each new datacenter on top of the coal plant in the same slot
+        while len(datacenter_positions) < datacenter_count:
+            slot = len(datacenter_positions)
+            if slot < len(coal_plant_positions):
+                datacenter_positions.append(coal_plant_positions[slot])
+            else:
+                datacenter_positions.append((
+                    random.randint(background_rect.left, little_coal_max_x),
+                    random.randint(background_rect.top, little_coal_max_y),
+                ))
+
+        # Forget spots for datacenters we lost (game reset)
+        while len(datacenter_positions) > datacenter_count:
+            datacenter_positions.pop()
+
+        # Draw every datacenter at its saved spot, on top of the power plants
+        for position in datacenter_positions:
+            screen.blit(little_datacenter_button_img, position)
 
         money_counter = font.render(f"Money: {money}", True, (0, 0, 0))
         screen.blit(money_counter, (20, 50))
