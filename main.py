@@ -23,6 +23,8 @@ supporting = 0
 coal_plant_count = 0
 coal_mine_count = 0
 coal_plant_cost = 10
+datacenter_count = 0
+
 coal_income_event = py.USEREVENT + 1
 py.time.set_timer(coal_income_event,  1000)
 coal_mine_income_event = py.USEREVENT + 2
@@ -38,6 +40,7 @@ parliment_button = py.image.load('parliment.bmp')
 coal_plant = py.image.load('coal.bmp')
 minecart_img = py.image.load('minecart.bmp')
 settings_img = py.image.load('settings.bmp')
+datacenter_button_img = py.image.load('datacenter.bmp')
 
 TRANSPARENT_COLOUR = (0, 0, 0)
 tree_img.set_colorkey(TRANSPARENT_COLOUR)
@@ -81,6 +84,12 @@ little_coal_button_img = py.transform.scale(
     (int(coal_plant.get_width() * little_coal_scale), int(coal_plant.get_height() * little_coal_scale)),
 )
 little_coal_button_img.set_colorkey((255, 0, 0))
+
+datacenter_scale = 0.35
+datacenter_button_img = py.transform.scale(
+    datacenter_button_img,
+    (int(datacenter_button_img.get_width() * datacenter_scale), int(datacenter_button_img.get_height() * datacenter_scale)),
+)
 
 # Where the background image sits on screen, so plants only spawn on top of it
 background_rect = background_image.get_rect(topleft=(configs.SCREEN_WIDTH - 679, 0))
@@ -127,6 +136,8 @@ minecart_img = py.transform.scale(
 )
 minecart_img.set_colorkey((255, 0, 0))
 minecart_rect = minecart_img.get_rect(topleft=(coal_button_rect.x + 8, coal_button_rect.y + coal_button_rect.height - 30))
+
+datacenter_rect = datacenter_button_img.get_rect(topleft=(10, 350))
 # Handler for inputs
 while running:
     if money <= 0 or paused == True:
@@ -197,6 +208,11 @@ while running:
                         money -= 5
                         coal_mine_count += 1
                         
+                if datacenter_rect.collidepoint(event.pos):
+                    if money > 100:
+                        money -= 100
+                        datacenter_count += 1
+
                 if paused == True:
                     # The play_again button needs to be updated when we have more variables to reset everything back to step 1
                     if play_again_button.collidepoint(event.pos):
@@ -245,6 +261,8 @@ while running:
         screen.blit(settings_img, settings_button_rect)
         
         screen.blit(minecart_img, minecart_rect)
+        
+        screen.blit(datacenter_button_img, datacenter_rect)
 
         py.draw.line(screen, (0, 0, 0), (width // 3.1, 0), (width // 3.1, height), 20)
 
@@ -252,10 +270,12 @@ while running:
         coal_plant_info = extrasmall_font.render(f"Coal Plants: {coal_plant_count}", True, (0, 0, 0))
         coal_plant_cost_info = extrasmall_font.render(f"Cost: {coal_plant_cost}", True, (0, 0, 0))
         coal_cost = extrasmall_font.render("Coal Consumption: 1", True, (0, 0, 0))
+        datacenter_info = extrasmall_font.render(f"Datacenters: {datacenter_count}", True, (0, 0, 0))
         screen.blit(coal_plant_info, (140, 180))
         screen.blit(coal_plant_cost_info, (140, 210))
         screen.blit(coal_cost, (140, 240))
-        
+        screen.blit(datacenter_info, (140, 270))
+
         #little plants
         # Give any brand new plant a random spot on the background image
         while len(coal_plant_positions) < coal_plant_count:
