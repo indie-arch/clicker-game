@@ -209,7 +209,7 @@ while running:
                         coal_mine_count += 1
                         
                 if datacenter_rect.collidepoint(event.pos):
-                    if money > 100:
+                    if money > 100 and power_amount > 0:
                         money -= 100
                         datacenter_count += 1
 
@@ -275,6 +275,11 @@ while running:
         screen.blit(coal_plant_cost_info, (140, 210))
         screen.blit(coal_cost, (140, 240))
         screen.blit(datacenter_info, (140, 270))
+        
+        #power amount text
+        power_amount = coal_plant_count - datacenter_count
+        power_amount_text = extrasmall_font.render(f"Power Amount: {power_amount}", True, (0, 0, 0))
+        screen.blit(power_amount_text, (140, 300))
 
         #little plants
         # Give any brand new plant a random spot on the background image
