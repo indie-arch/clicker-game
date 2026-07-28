@@ -44,8 +44,8 @@ datacenter_button_img = py.image.load('datacenter.bmp')
 
 TRANSPARENT_COLOUR = (0, 0, 0)
 tree_img.set_colorkey(TRANSPARENT_COLOUR)
-parliment_button.set_colorkey(TRANSPARENT_COLOUR)
-# Scale the tree down to 30% so its smaller (Why did this say 0?)
+
+# Scale the tree down to 30% so its smaller
 tree_scale = 0.3
 tree_img = py.transform.scale(
     tree_img,
