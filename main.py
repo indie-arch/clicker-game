@@ -109,6 +109,10 @@ background_rect = background_image.get_rect(topleft=(configs.SCREEN_WIDTH - 679,
 little_coal_max_x = background_rect.right - little_coal_button_img.get_width()
 little_coal_max_y = background_rect.bottom - little_coal_button_img.get_height()
 
+# The furthest right/down a little datacenter can start and still fit on the background
+little_datacenter_max_x = background_rect.right - little_datacenter_button_img.get_width()
+little_datacenter_max_y = background_rect.bottom - little_datacenter_button_img.get_height()
+
 # Holds one random (x, y) per built coal plant so they stay in the same spot each frame
 coal_plant_positions = []
 
@@ -315,22 +319,18 @@ while running:
             screen.blit(little_coal_button_img, position)
 
         #little datacenters
-        # Spawn each new datacenter on top of the coal plant in the same slot
+        # Give any brand new datacenter a random spot on the background image
         while len(datacenter_positions) < datacenter_count:
-            slot = len(datacenter_positions)
-            if slot < len(coal_plant_positions):
-                datacenter_positions.append(coal_plant_positions[slot])
-            else:
-                datacenter_positions.append((
-                    random.randint(background_rect.left, little_coal_max_x),
-                    random.randint(background_rect.top, little_coal_max_y),
-                ))
+            datacenter_positions.append((
+                random.randint(background_rect.left, little_datacenter_max_x),
+                random.randint(background_rect.top, little_datacenter_max_y),
+            ))
 
         # Forget spots for datacenters we lost (game reset)
         while len(datacenter_positions) > datacenter_count:
             datacenter_positions.pop()
 
-        # Draw every datacenter at its saved spot, on top of the power plants
+        # Draw every datacenter at its saved spot
         for position in datacenter_positions:
             screen.blit(little_datacenter_button_img, position)
 
