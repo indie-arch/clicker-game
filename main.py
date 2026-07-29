@@ -14,10 +14,15 @@ py.init()
 paused = False
 money = 1
 coal = 0
+electricity = 0
 coal_shortage = False
 coal_neutral = True
 coal_surplus = False
 coal_deficit = False
+electricity_shortage = False
+electricity_neutral = True
+electricity_surplus = False
+electricity_deficit = False
 apposed = 435
 supporting = 0
 coal_plant_count = 0
@@ -25,6 +30,8 @@ coal_mine_count = 0
 coal_plant_cost = 10
 datacenter_count = 0
 
+electricity_income_event = py.USEREVENT + 3
+py.time.set_timer(electricity_income_event, 1000)
 coal_income_event = py.USEREVENT + 1
 py.time.set_timer(coal_income_event,  1000)
 coal_mine_income_event = py.USEREVENT + 2
@@ -188,6 +195,11 @@ while running:
             if not paused:
                 coal += coal_mine_count
 
+        if event.type == electricity_income_event:
+            if not paused:
+                electricity += coal_plant_count
+                electricity -= datacenter_count
+
         if event.type == py.MOUSEBUTTONDOWN:
             if event.button == 1: # Left click
                 # Menu subsection for inputs
@@ -226,7 +238,7 @@ while running:
                         coal_mine_count += 1
                         
                 if datacenter_rect.collidepoint(event.pos):
-                    if money > 100 and power_amount > 0:
+                    if money > 100 and electricity > 0:
                         money -= 100
                         datacenter_count += 1
 
@@ -242,6 +254,7 @@ while running:
                         paused = False
                         coal_mine_count = 0
                         datacenter_count = 0
+                        electricity = 0
         # Handler for keyboard inputs
         if event.type == py.KEYDOWN:
 
@@ -297,11 +310,6 @@ while running:
         screen.blit(coal_plant_cost_info, (140, 210))
         screen.blit(coal_cost, (140, 240))
         screen.blit(datacenter_info, (140, 270))
-        
-        #power amount text
-        power_amount = coal_plant_count - datacenter_count
-        power_amount_text = extrasmall_font.render(f"Power Amount: {power_amount}", True, (0, 0, 0))
-        screen.blit(power_amount_text, (140, 300))
 
         #little plants
         # Give any brand new plant a random spot on the background image
@@ -312,7 +320,7 @@ while running:
             ))
 
         # Forget spots for plants we lost (coal shortage or a game reset)
-        while len(coal_plant_positions) > coal_plant_count:
+        while len(coal_plant_positions) > max(0, coal_plant_count):
             coal_plant_positions.pop()
 
         # Draw every plant at its saved spot
@@ -345,7 +353,7 @@ while running:
         if coal <= -1:
             coal_shortage = True
             coal = 0
-            coal_plant_count -= 1
+            coal_plant_count = max(0, coal_plant_count - 1)
         elif coal >= 2 or coal_mine_count == coal_plant_count:
             coal_shortage = False
 
@@ -364,11 +372,13 @@ while running:
             coal_surplus = True
 
         coal_count = font.render(f"Coal: {coal}", True, (0, 0, 0))
+        electricity_count = font.render(f"Electricity: {electricity}", True, (0, 0, 0))
         coal_shortage_alert = font.render("Coal Shortage!", True, (255, 0, 0))
         coal_neutral_alert = font.render("Coal Neutral!", True, (0, 0, 0))
         coal_deficit_alert = font.render("Coal Deficit!", True, (255, 165, 0))
         coal_surplus_alert = font.render("Coal Surplus!", True, (0, 255, 0))
         screen.blit(coal_count, (resources_x, resources_y))
+        screen.blit(electricity_count, (resources_x , resources_y + 60))
         if coal_shortage == True:
             screen.blit(coal_shortage_alert, (resources_x + 200, resources_y))
         if coal_deficit == True:
@@ -377,6 +387,46 @@ while running:
             screen.blit(coal_neutral_alert, (resources_x + 200, resources_y))
         if coal_surplus == True:
             screen.blit(coal_surplus_alert, (resources_x + 200, resources_y))
+            
+            
+        #electroicity deficit shit
+        
+        if electricity <= -1:
+            electricity_shortage = True
+            electricity = 0
+            datacenter_count = max(0, datacenter_count - 1)
+        elif electricity >= 2 or coal_plant_count == datacenter_count:
+            electricity_shortage = False
+
+        # Reset electricity status flags before determining the current alert.
+        electricity_surplus = False
+        electricity_deficit = False
+        electricity_neutral = False
+
+        if electricity_shortage:
+            pass 
+        elif coal_plant_count == datacenter_count:
+            electricity_neutral = True
+        elif datacenter_count > coal_plant_count:
+            electricity_deficit = True
+        elif coal_plant_count > datacenter_count:
+            electricity_surplus = True
+        
+        electricity_shortage_alert = font.render("Electricity Shortage!", True, (255, 0, 0))
+        electricity_neutral_alert = font.render("Electricity Neutral!", True, (0, 0, 0))
+        electricity_deficit_alert = font.render("Electricity Deficit!", True, (255, 165, 0))
+        electricity_surplus_alert = font.render("Electricity Surplus!", True, (0, 255, 0))
+        screen.blit(coal_count, (resources_x, resources_y))
+        screen.blit(electricity_count, (resources_x , resources_y + 60))
+        if electricity_shortage == True:
+            screen.blit(electricity_shortage_alert, (resources_x + 260, resources_y + 60))
+        if electricity_deficit == True:
+            screen.blit(electricity_deficit_alert, (resources_x + 260, resources_y + 60))
+        if electricity_neutral == True:
+            screen.blit(electricity_neutral_alert, (resources_x + 260, resources_y + 60))
+        if electricity_surplus == True:
+            screen.blit(electricity_surplus_alert, (resources_x + 260, resources_y + 60))
+        
 
         if menu_open:
             py.draw.rect(screen, (255, 255, 255), menu)
