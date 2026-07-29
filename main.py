@@ -36,6 +36,8 @@ coal_income_event = py.USEREVENT + 1
 py.time.set_timer(coal_income_event,  1000)
 coal_mine_income_event = py.USEREVENT + 2
 py.time.set_timer(coal_mine_income_event, 1000)
+datacenter_income_event = py.USEREVENT + 4
+py.time.set_timer(datacenter_income_event, 1000)
 extrasmall_font = py.font.SysFont(None, configs.EXTRA_SMALL_FONT_SIZE)
 font = py.font.SysFont(None, configs.SMALL_FONT_SIZE)
 large_font = py.font.SysFont(None, configs.LARGE_FONT_SIZE)
@@ -194,6 +196,10 @@ while running:
         if event.type == coal_mine_income_event:
             if not paused:
                 coal += coal_mine_count
+
+        if event.type == datacenter_income_event:
+            if not paused:
+                money += datacenter_count * 10
 
         if event.type == electricity_income_event:
             if not paused:
@@ -380,13 +386,13 @@ while running:
         screen.blit(coal_count, (resources_x, resources_y))
         screen.blit(electricity_count, (resources_x , resources_y + 60))
         if coal_shortage == True:
-            screen.blit(coal_shortage_alert, (resources_x + 200, resources_y))
+            screen.blit(coal_shortage_alert, (resources_x + 290, resources_y))
         if coal_deficit == True:
-            screen.blit(coal_deficit_alert, (resources_x + 200, resources_y))
+            screen.blit(coal_deficit_alert, (resources_x + 290, resources_y))
         if coal_neutral == True:
-            screen.blit(coal_neutral_alert, (resources_x + 200, resources_y))
+            screen.blit(coal_neutral_alert, (resources_x + 290, resources_y))
         if coal_surplus == True:
-            screen.blit(coal_surplus_alert, (resources_x + 200, resources_y))
+            screen.blit(coal_surplus_alert, (resources_x + 290, resources_y))
             
             
         #electroicity deficit shit
@@ -419,13 +425,13 @@ while running:
         screen.blit(coal_count, (resources_x, resources_y))
         screen.blit(electricity_count, (resources_x , resources_y + 60))
         if electricity_shortage == True:
-            screen.blit(electricity_shortage_alert, (resources_x + 260, resources_y + 60))
+            screen.blit(electricity_shortage_alert, (resources_x + 290, resources_y + 60))
         if electricity_deficit == True:
-            screen.blit(electricity_deficit_alert, (resources_x + 260, resources_y + 60))
+            screen.blit(electricity_deficit_alert, (resources_x + 290, resources_y + 60))
         if electricity_neutral == True:
-            screen.blit(electricity_neutral_alert, (resources_x + 260, resources_y + 60))
+            screen.blit(electricity_neutral_alert, (resources_x + 290, resources_y + 60))
         if electricity_surplus == True:
-            screen.blit(electricity_surplus_alert, (resources_x + 260, resources_y + 60))
+            screen.blit(electricity_surplus_alert, (resources_x + 290, resources_y + 60))
         
 
         if menu_open:
