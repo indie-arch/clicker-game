@@ -241,6 +241,7 @@ while running:
                         coal_shortage = False
                         paused = False
                         coal_mine_count = 0
+                        datacenter_count = 0
         # Handler for keyboard inputs
         if event.type == py.KEYDOWN:
 
