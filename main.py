@@ -29,6 +29,7 @@ coal_plant_count = 0
 coal_mine_count = 0
 coal_plant_cost = 10
 datacenter_count = 0
+datacenter_cost = 100
 
 electricity_income_event = py.USEREVENT + 3
 py.time.set_timer(electricity_income_event, 1000)
@@ -233,10 +234,7 @@ while running:
                         money -= coal_plant_cost
                         #CRUCIAL COAL FUNCTIONALITY FOR COAL IMPLEMENTATION
                         coal_plant_count += 1
-                        if configs.HARD_MODE == True:
-                            coal_plant_cost = coal_plant_cost * coal_plant_count + 1
-                        if configs.HARD_MODE == False:
-                            coal_plant_cost = coal_plant_cost + coal_plant_cost
+                        coal_plant_cost = round(coal_plant_cost * 1.4)
 
                 if minecart_rect.collidepoint(event.pos):
                     if money > 5:
@@ -244,9 +242,10 @@ while running:
                         coal_mine_count += 1
                         
                 if datacenter_rect.collidepoint(event.pos):
-                    if money > 100 and electricity > 0:
-                        money -= 100
+                    if money > datacenter_cost and electricity > 0:
+                        money -= datacenter_cost
                         datacenter_count += 1
+                        datacenter_cost = round(datacenter_cost * 1.4)
 
                 if paused == True:
                     # The play_again button needs to be updated when we have more variables to reset everything back to step 1
@@ -255,11 +254,13 @@ while running:
                         apposed = 435
                         supporting = 0
                         coal_plant_count = 0
+                        coal_plant_cost = 10
                         coal = 0
                         coal_shortage = False
                         paused = False
                         coal_mine_count = 0
                         datacenter_count = 0
+                        datacenter_cost = 100
                         electricity = 0
         # Handler for keyboard inputs
         if event.type == py.KEYDOWN:
@@ -312,10 +313,12 @@ while running:
         coal_plant_cost_info = extrasmall_font.render(f"Cost: {coal_plant_cost}", True, (0, 0, 0))
         coal_cost = extrasmall_font.render("Coal Consumption: 1", True, (0, 0, 0))
         datacenter_info = extrasmall_font.render(f"Datacenters: {datacenter_count}", True, (0, 0, 0))
+        datacenter_cost_info = extrasmall_font.render(f"Datacenter Cost: {datacenter_cost}", True, (0, 0, 0))
         screen.blit(coal_plant_info, (140, 180))
         screen.blit(coal_plant_cost_info, (140, 210))
         screen.blit(coal_cost, (140, 240))
         screen.blit(datacenter_info, (140, 270))
+        screen.blit(datacenter_cost_info, (140, 300))
 
         #little plants
         # Give any brand new plant a random spot on the background image
