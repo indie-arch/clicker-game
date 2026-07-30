@@ -314,11 +314,15 @@ while running:
         coal_cost = extrasmall_font.render("Coal Consumption: 1", True, (0, 0, 0))
         datacenter_info = extrasmall_font.render(f"Datacenters: {datacenter_count}", True, (0, 0, 0))
         datacenter_cost_info = extrasmall_font.render(f"Datacenter Cost: {datacenter_cost}", True, (0, 0, 0))
+        coal_mine_count_info = extrasmall_font.render(f"Coal Mine Count {coal_mine_count}", True, (0, 0, 0))
+        datacenter_electricity = extrasmall_font.render(f"Electricty Cost: 1", True, (0, 0, 0))
         screen.blit(coal_plant_info, (140, 180))
         screen.blit(coal_plant_cost_info, (140, 210))
         screen.blit(coal_cost, (140, 240))
-        screen.blit(datacenter_info, (140, 270))
-        screen.blit(datacenter_cost_info, (140, 300))
+        screen.blit(coal_mine_count_info, (140, 300))
+        screen.blit(datacenter_info, (160, 410))
+        screen.blit(datacenter_cost_info, (160, 390))
+        screen.blit(datacenter_electricity, (160, 430))
 
         #little plants
         # Give any brand new plant a random spot on the background image
