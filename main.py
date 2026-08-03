@@ -73,7 +73,7 @@ background_colour = (255,255,255)
 
 # Create the window, set its title, then paint the background + image
 screen = py.display.set_mode((width, height))
-py.display.set_caption('ENDBRINGER.exe')
+py.display.set_caption('Enviroment Clicker')
 
 tree_x = width - 529
 tree_y = 50
