@@ -30,6 +30,7 @@ coal_mine_count = 0
 coal_plant_cost = 10
 datacenter_count = 0
 datacenter_cost = 100
+page = 1
 
 electricity_income_event = py.USEREVENT + 3
 py.time.set_timer(electricity_income_event, 1000)
@@ -51,6 +52,8 @@ coal_plant = py.image.load('coal.bmp')
 minecart_img = py.image.load('minecart.bmp')
 settings_img = py.image.load('settings.bmp')
 datacenter_button_img = py.image.load('datacenter.bmp')
+arrow_img = py.image.load('arrow.bmp')
+other_arrow_img = py.image.load("otherarrow.bmp")
 
 TRANSPARENT_COLOUR = (0, 0, 0)
 tree_img.set_colorkey(TRANSPARENT_COLOUR)
@@ -67,6 +70,17 @@ parliment_button = py.transform.scale(
     (int(parliment_button.get_width() * parliment_scale), int(parliment_button.get_height() * parliment_scale)),
 )
 background_colour = (255,255,255)
+arrow_scale = 0.3
+arrow_img = py.transform.scale(
+    arrow_img,
+    (int(arrow_img.get_width() * arrow_scale), int(arrow_img.get_height() * arrow_scale))
+)
+other_arrow_img = py.transform.scale(
+    other_arrow_img,
+    (int(other_arrow_img.get_width() * arrow_scale), int(other_arrow_img.get_height() * arrow_scale))
+)
+arrow_img.set_colorkey((255, 0, 0))
+other_arrow_img.set_colorkey((255, 0, 0))
 
 # Read screen dimensions from configs so they can be tweaked in one place
 (width, height) = (configs.SCREEN_WIDTH, configs.SCREEN_HEIGHT)
@@ -79,7 +93,12 @@ tree_x = width - 529
 tree_y = 50
 
 parliment_x = width - 1000
-parliment_y = 500
+parliment_y = 520
+
+arrow_x = width - 800
+arrow_y = 440
+
+other_arrow_x = width - 1000
 
 #loading and scaling images for buttons
 coal_scale = 0.5
@@ -142,6 +161,8 @@ settings_button_rect = settings_img.get_rect(bottomright=(width - 10, height - 1
 
 tree_button_rect = tree_img.get_rect(topleft=(tree_x, tree_y))
 parliment_button_rect = parliment_button.get_rect(topleft=(parliment_x, parliment_y))
+arrow_button_rect = arrow_img.get_rect(topleft=(arrow_x, arrow_y))
+other_arrow_button_rect = other_arrow_img.get_rect(topleft=(other_arrow_x, arrow_y))
 coal_plant_rect = coal_plant.get_rect(topleft=(width - 800, 300))
 running = True
 
@@ -217,6 +238,14 @@ while running:
                 if tree_button_rect.collidepoint(event.pos):
                     money += 1
 
+                if arrow_button_rect.collidepoint(event.pos):
+                    if page >= 1:
+                        page += 1
+
+                if other_arrow_button_rect.collidepoint(event.pos):
+                    if page > 1:
+                        page -= 1
+
                 if parliment_button_rect.collidepoint(event.pos):
                     menu_open = True
                     settings_open = False
@@ -229,23 +258,26 @@ while running:
                     if settings_close_button.collidepoint(event.pos):
                         settings_open = False
 
-                if coal_button_rect.collidepoint(event.pos):
-                    if money > coal_plant_cost and coal >= 1:
-                        money -= coal_plant_cost
-                        #CRUCIAL COAL FUNCTIONALITY FOR COAL IMPLEMENTATION
-                        coal_plant_count += 1
-                        coal_plant_cost = round(coal_plant_cost * 1.4)
+                if page == 1:
+                    if coal_button_rect.collidepoint(event.pos):
+                        if money > coal_plant_cost and coal >= 1:
+                            money -= coal_plant_cost
+                            #CRUCIAL COAL FUNCTIONALITY FOR COAL IMPLEMENTATION
+                            coal_plant_count += 1
+                            coal_plant_cost = round(coal_plant_cost * 1.4)
 
-                if minecart_rect.collidepoint(event.pos):
-                    if money > 5:
-                        money -= 5
-                        coal_mine_count += 1
+                if page == 1:
+                    if minecart_rect.collidepoint(event.pos):
+                        if money > 5:
+                            money -= 5
+                            coal_mine_count += 1
                         
-                if datacenter_rect.collidepoint(event.pos):
-                    if money > datacenter_cost and electricity > 0:
-                        money -= datacenter_cost
-                        datacenter_count += 1
-                        datacenter_cost = round(datacenter_cost * 1.4)
+                if page == 1:  
+                    if datacenter_rect.collidepoint(event.pos):
+                        if money > datacenter_cost and electricity > 0:
+                            money -= datacenter_cost
+                            datacenter_count += 1
+                            datacenter_cost = round(datacenter_cost * 1.4)
 
                 if paused == True:
                     # The play_again button needs to be updated when we have more variables to reset everything back to step 1
@@ -262,6 +294,7 @@ while running:
                         datacenter_count = 0
                         datacenter_cost = 100
                         electricity = 0
+                        page = 1
         # Handler for keyboard inputs
         if event.type == py.KEYDOWN:
 
@@ -296,33 +329,15 @@ while running:
 
         screen.blit(tree_img, tree_button_rect)
 
+        screen.blit(arrow_img, arrow_button_rect)
+
         screen.blit(parliment_button, parliment_button_rect)
 
-        screen.blit(coal_button_img, coal_button_rect)
-
         screen.blit(settings_img, settings_button_rect)
-        
-        screen.blit(minecart_img, minecart_rect)
-        
-        screen.blit(datacenter_button_img, datacenter_rect)
+
+        screen.blit(other_arrow_img, other_arrow_button_rect)
 
         py.draw.line(screen, (0, 0, 0), (width // 3.1, 0), (width // 3.1, height), 20)
-
-        #coal plant text
-        coal_plant_info = extrasmall_font.render(f"Coal Plants: {coal_plant_count}", True, (0, 0, 0))
-        coal_plant_cost_info = extrasmall_font.render(f"Cost: {coal_plant_cost}", True, (0, 0, 0))
-        coal_cost = extrasmall_font.render("Coal Consumption: 1", True, (0, 0, 0))
-        datacenter_info = extrasmall_font.render(f"Datacenters: {datacenter_count}", True, (0, 0, 0))
-        datacenter_cost_info = extrasmall_font.render(f"Datacenter Cost: {datacenter_cost}", True, (0, 0, 0))
-        coal_mine_count_info = extrasmall_font.render(f"Coal Mine Count {coal_mine_count}", True, (0, 0, 0))
-        datacenter_electricity = extrasmall_font.render(f"Electricty Cost: 1", True, (0, 0, 0))
-        screen.blit(coal_plant_info, (140, 180))
-        screen.blit(coal_plant_cost_info, (140, 210))
-        screen.blit(coal_cost, (140, 240))
-        screen.blit(coal_mine_count_info, (140, 300))
-        screen.blit(datacenter_info, (160, 410))
-        screen.blit(datacenter_cost_info, (160, 390))
-        screen.blit(datacenter_electricity, (160, 430))
 
         #little plants
         # Give any brand new plant a random spot on the background image
@@ -466,6 +481,28 @@ while running:
 
             py.draw.rect(screen, (255, 100, 100), settings_close_button)
             py.draw.rect(screen, (0, 0, 0), settings_close_button, 2)
+        if page == 1:
+            #coal plant text
+            coal_plant_info = extrasmall_font.render(f"Coal Plants: {coal_plant_count}", True, (0, 0, 0))
+            coal_plant_cost_info = extrasmall_font.render(f"Cost: {coal_plant_cost}", True, (0, 0, 0))
+            coal_cost = extrasmall_font.render("Coal Consumption: 1", True, (0, 0, 0))
+            datacenter_info = extrasmall_font.render(f"Datacenters: {datacenter_count}", True, (0, 0, 0))
+            datacenter_cost_info = extrasmall_font.render(f"Datacenter Cost: {datacenter_cost}", True, (0, 0, 0))
+            coal_mine_count_info = extrasmall_font.render(f"Coal Mine Count {coal_mine_count}", True, (0, 0, 0))
+            datacenter_electricity = extrasmall_font.render(f"Electricty Cost: 1", True, (0, 0, 0))
+            screen.blit(coal_plant_info, (140, 180))
+            screen.blit(coal_plant_cost_info, (140, 210))
+            screen.blit(coal_cost, (140, 240))
+            screen.blit(coal_mine_count_info, (140, 300))
+            screen.blit(datacenter_info, (160, 410))
+            screen.blit(datacenter_cost_info, (160, 390))
+            screen.blit(datacenter_electricity, (160, 430))
+            screen.blit(coal_button_img, coal_button_rect)
+            screen.blit(minecart_img, minecart_rect)
+            screen.blit(datacenter_button_img, datacenter_rect)
+        if page == 2:
+            print("Page 2 selected this is a placeholder")
+            # Put buildings and text and stuff thats required for the next page here.
     py.display.flip()
 
 py.quit()
