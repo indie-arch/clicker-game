@@ -226,7 +226,7 @@ minecart_rect = minecart_img.get_rect(topleft=(coal_button_rect.x + 8, coal_butt
 datacenter_rect = datacenter_button_img.get_rect(topleft=(10, 350))
 # Handler for inputs
 while running:
-    if money <= 0 or paused == True:
+    if money < 0 or paused == True:
         paused = True
         screen.fill((255, 0, 0))
         losing_text = large_font.render("You lose!", True, (0, 0, 0))
@@ -289,7 +289,7 @@ while running:
                 if menu_open:
                     if menu_close_button.collidepoint(event.pos):
                         menu_open = False
-                    if lobbying_button.collidepoint(event.pos) and money > 1000:
+                    if lobbying_button.collidepoint(event.pos) and money >= 1000:
                         money -= 1000
                         supporting += 10
                         if apposed >= 0:
@@ -323,7 +323,7 @@ while running:
 
                 if page == 1:
                     if coal_button_rect.collidepoint(event.pos):
-                        if money > coal_plant_cost and coal >= 1:
+                        if money >= coal_plant_cost and coal >= 1:
                             money -= coal_plant_cost
                             #CRUCIAL COAL FUNCTIONALITY FOR COAL IMPLEMENTATION
                             coal_plant_count += 1
@@ -331,20 +331,20 @@ while running:
 
                 if page == 1:
                     if minecart_rect.collidepoint(event.pos):
-                        if money > 5:
+                        if money >= 5:
                             money -= 5
                             coal_mine_count += 1
                         
                 if page == 1:  
                     if datacenter_rect.collidepoint(event.pos):
-                        if money > datacenter_cost and electricity > 0:
+                        if money >= datacenter_cost and electricity > 0:
                             money -= datacenter_cost
                             datacenter_count += 1
                             datacenter_cost = round(datacenter_cost * 1.4)
 
                 if page == 2:
                     if oil_refinery_rect.collidepoint(event.pos):
-                        if money > oil_refinery_cost and oil > 0:
+                        if money >= oil_refinery_cost and oil > 0:
                             money -= oil_refinery_cost
                             oil_refinery_count += 1
                             oil_refinery_cost = round(oil_refinery_cost * 1.4)
