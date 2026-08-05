@@ -38,8 +38,10 @@ coal_mine_count = 0
 coal_plant_cost = 10
 datacenter_count = 0
 datacenter_cost = 100
+lobbying_efforts = 0
 page = 1
 
+lobbying_timer = py.USEREVENT + 7
 electricity_income_event = py.USEREVENT + 3
 py.time.set_timer(electricity_income_event, 1000)
 coal_income_event = py.USEREVENT + 1
@@ -205,6 +207,7 @@ menu_open = False
 menu = py.Rect((width // 6, height // 6, 800, 600))
 menu_close_button = py.Rect(menu.right - 120, menu.bottom - 60, 100, 40)
 parliment_confirm_button = py.Rect(menu.x + 20, menu.bottom - 60, 100, 40)
+lobbying_button = py.Rect(menu.x + 20, menu.y + 160, 200, 40)
 
 # Settings menu graphics
 settings_open = False
@@ -271,12 +274,29 @@ while running:
             if not paused:
                 oil += middile_eastern_nations
 
+        if event.type == lobbying_timer:
+            if not paused:
+                money -= (lobbying_efforts * 1000)
+                supporting = min(435, supporting + (10 * lobbying_efforts))
+                apposed = max(0, apposed - (10 * lobbying_efforts))
+                if lobbying_efforts == 0:
+                    supporting = max(0, supporting - 10)
+                    apposed = min(435, apposed + 10)
+
         if event.type == py.MOUSEBUTTONDOWN:
             if event.button == 1: # Left click
                 # Menu subsection for inputs
                 if menu_open:
                     if menu_close_button.collidepoint(event.pos):
                         menu_open = False
+                    if lobbying_button.collidepoint(event.pos) and money > 1000:
+                        money -= 1000
+                        supporting += 10
+                        if apposed >= 0:
+                            apposed -= 10
+                        if lobbying_efforts == 0:
+                            py.time.set_timer(lobbying_timer, 100000)
+                        lobbying_efforts += 1
 
                 if tree_button_rect.collidepoint(event.pos):
                     money += 1
@@ -349,6 +369,7 @@ while running:
                         oil_refinery_count = 0
                         oil_refinery_cost = 50
                         page = 1
+                        lobbying_efforts = 0
         # Handler for keyboard inputs
         if event.type == py.KEYDOWN:
 
@@ -608,11 +629,22 @@ while running:
             screen.blit(positive_influence_counter, (menu.x + 20, menu.y + 55))
             screen.blit(negative_influence_counter, (menu.x + 20, menu.y + 90))
 
+            py.draw.rect(screen, (100, 200, 255), lobbying_button)
+            py.draw.rect(screen, (0, 0, 0), lobbying_button, 2)
+            lobbying_text = button_text = extrasmall_font.render(f"Lobbying efforts: {lobbying_efforts}", True, (0, 0, 0))
+            lobbying_text_rect = button_text.get_rect(center=lobbying_button.center)
+            screen.blit(button_text, lobbying_text_rect)
             py.draw.rect(screen, (255, 100, 100), menu_close_button)
             py.draw.rect(screen, (0, 0, 0), menu_close_button, 2)
             py.draw.rect(screen, (100, 255, 100), parliment_confirm_button)
             py.draw.rect(screen, (0, 0, 0), parliment_confirm_button, 2)
             py.draw.line(screen, (0, 0, 0), (menu.x + 20, menu.y + 140), (menu.right - 20, menu.y + 140), 3)
+            confirm_text = extrasmall_font.render("Confirm", True, (0, 0, 0))
+            confirm_rect = confirm_text.get_rect(center=parliment_confirm_button.center)
+            screen.blit(confirm_text, confirm_rect)
+            close_text = extrasmall_font.render("Close", True, (0, 0, 0))
+            close_rect = close_text.get_rect(center=menu_close_button.center)
+            screen.blit(close_text, close_rect)
         if settings_open:
             py.draw.rect(screen, (255, 255, 255), menu)
             py.draw.rect(screen, (0, 0, 0), menu, 5)
