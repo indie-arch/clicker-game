@@ -150,6 +150,13 @@ datacenter_button_img = py.transform.scale(
     (int(datacenter_button_img.get_width() * datacenter_scale), int(datacenter_button_img.get_height() * datacenter_scale)),
 )
 
+little_oil_refinery_scale = 0.2
+little_oil_refinery_button_img = py.transform.scale(
+    oil_refinery_img,
+    (int(oil_refinery_img.get_width() * little_oil_refinery_scale), int(oil_refinery_img.get_height() * little_oil_refinery_scale)),
+)
+little_oil_refinery_button_img.set_colorkey((255, 0, 0))
+
 # Where the background image sits on screen, so plants only spawn on top of it
 background_rect = background_image.get_rect(topleft=(configs.SCREEN_WIDTH - 679, 0))
 
@@ -161,11 +168,18 @@ little_coal_max_y = background_rect.bottom - little_coal_button_img.get_height()
 little_datacenter_max_x = background_rect.right - little_datacenter_button_img.get_width()
 little_datacenter_max_y = background_rect.bottom - little_datacenter_button_img.get_height()
 
+# The furthest right/down a little oil refinery can start and still fit on the background
+little_oil_refinery_max_x = background_rect.right - little_oil_refinery_button_img.get_width()
+little_oil_refinery_max_y = background_rect.bottom - little_oil_refinery_button_img.get_height()
+
 # Holds one random (x, y) per built coal plant so they stay in the same spot each frame
 coal_plant_positions = []
 
 # Holds one (x, y) per built datacenter, spawned on top of the coal plants
 datacenter_positions = []
+
+# Holds one (x, y) per built oil refinery, spawned on top of the coal plants
+oil_refinery_positions = []
 
 coal_button_img.set_colorkey((255, 0, 0))
 coal_button_rect = coal_button_img.get_rect(topleft=(5, 100))
@@ -419,6 +433,22 @@ while running:
         for position in datacenter_positions:
             screen.blit(little_datacenter_button_img, position)
 
+        #little oil refineries
+        # Give any brand new oil refinery a random spot on the background image
+        while len(oil_refinery_positions) < oil_refinery_count:
+            oil_refinery_positions.append((
+                random.randint(background_rect.left, little_oil_refinery_max_x),
+                random.randint(background_rect.top, little_oil_refinery_max_y),
+            ))
+
+        # Forget spots for oil refineries we lost (oil shortage or a game reset)
+        while len(oil_refinery_positions) > max(0, oil_refinery_count):
+            oil_refinery_positions.pop()
+
+        # Draw every oil refinery at its saved spot
+        for position in oil_refinery_positions:
+            screen.blit(little_oil_refinery_button_img, position)
+
         money_counter = font.render(f"Money: {money}", True, (0, 0, 0))
         screen.blit(money_counter, (20, 50))
 
@@ -596,3 +626,4 @@ while running:
 
 py.quit()
 sys.exit()
+
