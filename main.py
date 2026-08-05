@@ -14,6 +14,8 @@ py.init()
 paused = False
 money = 1
 coal = 0
+oil = 0
+middile_eastern_nations = 0
 electricity = 0
 coal_shortage = False
 coal_neutral = True
@@ -23,9 +25,15 @@ electricity_shortage = False
 electricity_neutral = True
 electricity_surplus = False
 electricity_deficit = False
+oil_shortage = False
+oil_neutral = True
+oil_surplus = False
+oil_deficit = False
 apposed = 435
 supporting = 0
 coal_plant_count = 0
+oil_refinery_count = 0
+oil_refinery_cost = 50
 coal_mine_count = 0
 coal_plant_cost = 10
 datacenter_count = 0
@@ -40,6 +48,10 @@ coal_mine_income_event = py.USEREVENT + 2
 py.time.set_timer(coal_mine_income_event, 1000)
 datacenter_income_event = py.USEREVENT + 4
 py.time.set_timer(datacenter_income_event, 1000)
+oil_refinery_income_event = py.USEREVENT + 5
+py.time.set_timer(oil_refinery_income_event, 1000)
+middile_eastern_income_event = py.USEREVENT + 6
+py.time.set_timer(middile_eastern_income_event, 1000)
 extrasmall_font = py.font.SysFont(None, configs.EXTRA_SMALL_FONT_SIZE)
 font = py.font.SysFont(None, configs.SMALL_FONT_SIZE)
 large_font = py.font.SysFont(None, configs.LARGE_FONT_SIZE)
@@ -54,6 +66,7 @@ settings_img = py.image.load('settings.bmp')
 datacenter_button_img = py.image.load('datacenter.bmp')
 arrow_img = py.image.load('arrow.bmp')
 other_arrow_img = py.image.load("otherarrow.bmp")
+oil_refinery_img = py.image.load("oil refinery.bmp")
 
 TRANSPARENT_COLOUR = (0, 0, 0)
 tree_img.set_colorkey(TRANSPARENT_COLOUR)
@@ -82,6 +95,12 @@ other_arrow_img = py.transform.scale(
 arrow_img.set_colorkey((255, 0, 0))
 other_arrow_img.set_colorkey((255, 0, 0))
 
+oil_refinery_scale = 0.3
+oil_refinery_img = py.transform.scale(
+    oil_refinery_img,
+    (int(oil_refinery_img.get_width() * oil_refinery_scale), int(oil_refinery_img.get_height() * oil_refinery_scale))
+)
+oil_refinery_img.set_colorkey((255, 0, 0))
 # Read screen dimensions from configs so they can be tweaked in one place
 (width, height) = (configs.SCREEN_WIDTH, configs.SCREEN_HEIGHT)
 
@@ -164,6 +183,7 @@ parliment_button_rect = parliment_button.get_rect(topleft=(parliment_x, parlimen
 arrow_button_rect = arrow_img.get_rect(topleft=(arrow_x, arrow_y))
 other_arrow_button_rect = other_arrow_img.get_rect(topleft=(other_arrow_x, arrow_y))
 coal_plant_rect = coal_plant.get_rect(topleft=(width - 800, 300))
+oil_refinery_rect = oil_refinery_img.get_rect(topleft=(coal_button_rect.x, coal_button_rect.y))
 running = True
 
 # Menu graphics
@@ -225,8 +245,17 @@ while running:
 
         if event.type == electricity_income_event:
             if not paused:
-                electricity += coal_plant_count
+                electricity += (coal_plant_count + (oil_refinery_count * 10)) 
                 electricity -= datacenter_count
+
+        if event.type == oil_refinery_income_event:
+            if not paused:
+                money += oil_refinery_count * 5
+                oil -= oil_refinery_count
+
+        if event.type == middile_eastern_income_event:
+            if not paused:
+                oil += middile_eastern_nations
 
         if event.type == py.MOUSEBUTTONDOWN:
             if event.button == 1: # Left click
@@ -279,6 +308,13 @@ while running:
                             datacenter_count += 1
                             datacenter_cost = round(datacenter_cost * 1.4)
 
+                if page == 2:
+                    if oil_refinery_rect.collidepoint(event.pos):
+                        if money > oil_refinery_cost and oil > 0:
+                            money -= oil_refinery_cost
+                            oil_refinery_count += 1
+                            oil_refinery_cost = round(oil_refinery_cost * 1.4)
+
                 if paused == True:
                     # The play_again button needs to be updated when we have more variables to reset everything back to step 1
                     if play_again_button.collidepoint(event.pos):
@@ -294,6 +330,10 @@ while running:
                         datacenter_count = 0
                         datacenter_cost = 100
                         electricity = 0
+                        oil = 0
+                        middile_eastern_nations = 0
+                        oil_refinery_count = 0
+                        oil_refinery_cost = 50
                         page = 1
         # Handler for keyboard inputs
         if event.type == py.KEYDOWN:
@@ -321,6 +361,14 @@ while running:
             #cheatcode for adding datacenters
             if event.key == py.K_4:
                 datacenter_count += 1
+
+            # Developer cheatcode for oil stuff
+            if event.key == py.K_3:
+                oil_refinery_count += 1
+
+            # Adds middile eastern nations
+            if event.key == py.K_2:
+                middile_eastern_nations += 1
 
     if paused == False:
         screen.fill(background_colour)
@@ -401,6 +449,7 @@ while running:
 
         coal_count = font.render(f"Coal: {coal}", True, (0, 0, 0))
         electricity_count = font.render(f"Electricity: {electricity}", True, (0, 0, 0))
+        oil_count = font.render(f"Oil: {oil}", True, (0, 0, 0))
         coal_shortage_alert = font.render("Coal Shortage!", True, (255, 0, 0))
         coal_neutral_alert = font.render("Coal Neutral!", True, (0, 0, 0))
         coal_deficit_alert = font.render("Coal Deficit!", True, (255, 165, 0))
@@ -423,7 +472,7 @@ while running:
             electricity_shortage = True
             electricity = 0
             datacenter_count = max(0, datacenter_count - 1)
-        elif electricity >= 2 or coal_plant_count == datacenter_count:
+        elif electricity >= 2 or (coal_plant_count + (oil_refinery_count * 5)) == datacenter_count:
             electricity_shortage = False
 
         # Reset electricity status flags before determining the current alert.
@@ -433,11 +482,11 @@ while running:
 
         if electricity_shortage:
             pass 
-        elif coal_plant_count == datacenter_count:
+        elif (coal_plant_count + (oil_refinery_count * 5)) == datacenter_count:
             electricity_neutral = True
-        elif datacenter_count > coal_plant_count:
+        elif datacenter_count > (coal_plant_count + (oil_refinery_count * 5)):
             electricity_deficit = True
-        elif coal_plant_count > datacenter_count:
+        elif (coal_plant_count + (oil_refinery_count * 5)) > datacenter_count:
             electricity_surplus = True
         
         electricity_shortage_alert = font.render("Electricity Shortage!", True, (255, 0, 0))
@@ -454,8 +503,70 @@ while running:
             screen.blit(electricity_neutral_alert, (resources_x + 290, resources_y + 60))
         if electricity_surplus == True:
             screen.blit(electricity_surplus_alert, (resources_x + 290, resources_y + 60))
-        
 
+        if oil <= -1:
+            oil_shortage = True
+            oil = 0
+            oil_refinery_count = max(0, oil_refinery_count - 1)
+        elif oil >= 2 or oil_refinery_count == middile_eastern_nations:
+            oil_shortage = False
+
+        # Reset electricity status flags before determining the current alert.
+        oil_surplus = False
+        oil_deficit = False
+        oil_neutral = False
+
+        if oil_shortage:
+            pass 
+        elif middile_eastern_nations == oil_refinery_count:
+            oil_neutral = True
+        elif oil_refinery_count > middile_eastern_nations:
+            oil_deficit = True
+        elif middile_eastern_nations > oil_refinery_count:
+            oil_surplus = True
+
+        oil_shortage_alert = font.render("Oil Shortage!", True, (255, 0, 0))
+        oil_neutral_alert = font.render("Oil Neutral!", True, (0, 0, 0 ))
+        oil_deficit_alert = font.render("Oil Deficit!", True, (255, 165, 0))
+        oil_surplus_alert = font.render("Oil Surplus!", True, (0, 255, 0))
+        screen.blit(oil_count, (resources_x, resources_y + 120))
+        if oil_shortage == True:
+            screen.blit(oil_shortage_alert, (resources_x + 290, resources_y + 120))
+        if oil_deficit == True:
+            screen.blit(oil_deficit_alert, (resources_x + 290, resources_y + 120))
+        if oil_neutral == True:
+            screen.blit(oil_neutral_alert, (resources_x + 290, resources_y + 120))
+        if oil_surplus == True:
+            screen.blit(oil_surplus_alert, (resources_x + 290, resources_y + 120))
+
+        if page == 1:
+            #coal plant text
+            coal_plant_info = extrasmall_font.render(f"Coal Plants: {coal_plant_count}", True, (0, 0, 0))
+            coal_plant_cost_info = extrasmall_font.render(f"Cost: {coal_plant_cost}", True, (0, 0, 0))
+            coal_cost = extrasmall_font.render("Coal Consumption: 1", True, (0, 0, 0))
+            datacenter_info = extrasmall_font.render(f"Datacenters: {datacenter_count}", True, (0, 0, 0))
+            datacenter_cost_info = extrasmall_font.render(f"Datacenter Cost: {datacenter_cost}", True, (0, 0, 0))
+            coal_mine_count_info = extrasmall_font.render(f"Coal Mine Count {coal_mine_count}", True, (0, 0, 0))
+            datacenter_electricity = extrasmall_font.render(f"Electricty Cost: 1", True, (0, 0, 0))
+            screen.blit(coal_plant_info, (140, 180))
+            screen.blit(coal_plant_cost_info, (140, 210))
+            screen.blit(coal_cost, (140, 240))
+            screen.blit(coal_mine_count_info, (140, 300))
+            screen.blit(datacenter_info, (160, 410))
+            screen.blit(datacenter_cost_info, (160, 390))
+            screen.blit(datacenter_electricity, (160, 430))
+            screen.blit(coal_button_img, coal_button_rect)
+            screen.blit(minecart_img, minecart_rect)
+            screen.blit(datacenter_button_img, datacenter_rect)
+        if page == 2:
+            # Put buildings and text and stuff thats required for the next page here.
+            screen.blit(oil_refinery_img, oil_refinery_rect)
+            oil_plant_info = extrasmall_font.render(f"Oil Plants: {oil_refinery_count}", True, (0, 0, 0))
+            oil_plant_cost_info = extrasmall_font.render(f"Cost: {oil_refinery_cost}", True, (0, 0, 0))
+            oil_cost = extrasmall_font.render("Oil Consumption: 1", True, (0, 0, 0))
+            screen.blit(oil_plant_info, (140, 160))
+            screen.blit(oil_plant_cost_info, (140, 190))
+            screen.blit(oil_cost, (140, 220))
         if menu_open:
             py.draw.rect(screen, (255, 255, 255), menu)
             py.draw.rect(screen, (0, 0, 0), menu, 5)
@@ -481,28 +592,6 @@ while running:
 
             py.draw.rect(screen, (255, 100, 100), settings_close_button)
             py.draw.rect(screen, (0, 0, 0), settings_close_button, 2)
-        if page == 1:
-            #coal plant text
-            coal_plant_info = extrasmall_font.render(f"Coal Plants: {coal_plant_count}", True, (0, 0, 0))
-            coal_plant_cost_info = extrasmall_font.render(f"Cost: {coal_plant_cost}", True, (0, 0, 0))
-            coal_cost = extrasmall_font.render("Coal Consumption: 1", True, (0, 0, 0))
-            datacenter_info = extrasmall_font.render(f"Datacenters: {datacenter_count}", True, (0, 0, 0))
-            datacenter_cost_info = extrasmall_font.render(f"Datacenter Cost: {datacenter_cost}", True, (0, 0, 0))
-            coal_mine_count_info = extrasmall_font.render(f"Coal Mine Count {coal_mine_count}", True, (0, 0, 0))
-            datacenter_electricity = extrasmall_font.render(f"Electricty Cost: 1", True, (0, 0, 0))
-            screen.blit(coal_plant_info, (140, 180))
-            screen.blit(coal_plant_cost_info, (140, 210))
-            screen.blit(coal_cost, (140, 240))
-            screen.blit(coal_mine_count_info, (140, 300))
-            screen.blit(datacenter_info, (160, 410))
-            screen.blit(datacenter_cost_info, (160, 390))
-            screen.blit(datacenter_electricity, (160, 430))
-            screen.blit(coal_button_img, coal_button_rect)
-            screen.blit(minecart_img, minecart_rect)
-            screen.blit(datacenter_button_img, datacenter_rect)
-        if page == 2:
-            print("Page 2 selected this is a placeholder")
-            # Put buildings and text and stuff thats required for the next page here.
     py.display.flip()
 
 py.quit()
