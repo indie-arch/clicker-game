@@ -289,7 +289,7 @@ while running:
                 if menu_open:
                     if menu_close_button.collidepoint(event.pos):
                         menu_open = False
-                    if lobbying_button.collidepoint(event.pos) and money > 1000:
+                    if lobbying_button.collidepoint(event.pos) and money > 1000 and lobbying_efforts < 44:
                         money -= 1000
                         supporting = min(435, supporting + 10)
                         apposed = max(0, apposed - 10)
