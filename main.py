@@ -17,6 +17,7 @@ coal = 0
 oil = 0
 middile_eastern_nations = 0
 electricity = 0
+deforestation_laws = 0
 coal_shortage = False
 coal_neutral = True
 coal_surplus = False
@@ -206,8 +207,9 @@ running = True
 menu_open = False
 menu = py.Rect((width // 6, height // 6, 800, 600))
 menu_close_button = py.Rect(menu.right - 120, menu.bottom - 60, 100, 40)
-parliment_confirm_button = py.Rect(menu.x + 20, menu.bottom - 60, 100, 40)
 lobbying_button = py.Rect(menu.x + 20, menu.y + 160, 200, 40)
+war_button = py.Rect(menu.x + 240, menu.y + 160, 340, 40)
+deforestation_law_button = py.Rect(menu.x + 20, menu.y + 200, 300, 40)
 
 # Settings menu graphics
 settings_open = False
@@ -296,9 +298,20 @@ while running:
                         if lobbying_efforts == 0:
                             py.time.set_timer(lobbying_timer, 100000)
                         lobbying_efforts += 1
+                    if war_button.collidepoint(event.pos) and supporting >= 100:
+                        middile_eastern_nations += 1
+                        supporting = max(0, supporting - 50)
+                        apposed = min(435, apposed + 50)
+                    if deforestation_law_button.collidepoint(event.pos) and supporting >= 10:
+                        deforestation_laws += 1
+                        supporting = max(0, supporting - 5)
+                        apposed = min(435, apposed + 5)
 
                 if tree_button_rect.collidepoint(event.pos):
+                    if deforestation_laws > 0:
+                        money += deforestation_laws * (10 * deforestation_laws) 
                     money += 1
+                    # theres no reason to add a trigger here to avoid += 1 money
 
                 if arrow_button_rect.collidepoint(event.pos):
                     if page >= 1:
@@ -368,6 +381,7 @@ while running:
                         oil_refinery_count = 0
                         oil_refinery_cost = 50
                         page = 1
+                        deforestation_laws = 0
                         lobbying_efforts = 0
         # Handler for keyboard inputs
         if event.type == py.KEYDOWN:
@@ -624,23 +638,32 @@ while running:
             menu_title = font.render("Parliment", True, (0, 0, 0))
             negative_influence_counter = font.render(f"Apposed: {apposed}", True, (0, 0, 0))
             positive_influence_counter = font.render(f"Supporting: {supporting}", True, (0, 0, 0))
+            middile_eastern_nations_counter = font.render(f"Middile eastern nations: {middile_eastern_nations}", True, (0, 0, 0))
+            deforestation_laws_counter = font.render(f"Deforestation laws: {deforestation_laws}", True, (0, 0, 0))
             screen.blit(menu_title, (menu.x + 20, menu.y + 20))
+            screen.blit(middile_eastern_nations_counter, (menu.x + 20, menu.y + 240))
+            screen.blit(deforestation_laws_counter, (menu.x + 20, menu.y + 280))
             screen.blit(positive_influence_counter, (menu.x + 20, menu.y + 55))
             screen.blit(negative_influence_counter, (menu.x + 20, menu.y + 90))
 
             py.draw.rect(screen, (100, 200, 255), lobbying_button)
             py.draw.rect(screen, (0, 0, 0), lobbying_button, 2)
+            py.draw.rect(screen, (100, 100, 255), war_button)
+            py.draw.rect(screen, (0, 0, 0), war_button, 2)
+            py.draw.rect(screen, (50, 255, 50), deforestation_law_button)
+            py.draw.rect(screen, (0, 0, 0), deforestation_law_button, 2)
             lobbying_text = button_text = extrasmall_font.render(f"Lobbying efforts: {lobbying_efforts}", True, (0, 0, 0))
             lobbying_text_rect = button_text.get_rect(center=lobbying_button.center)
+            war_text = war_button_text = extrasmall_font.render("Invade middile eastern nation, requires 100 support", True, (0, 0, 0))
+            war_text_rect = war_button_text.get_rect(center=war_button.center)
+            deforestation_text = deforestation_button_text = extrasmall_font.render("Deforestation law, requires 10 support", True, (0, 0, 0))
+            deforestation_text_rect = deforestation_text.get_rect(center=deforestation_law_button.center)
             screen.blit(button_text, lobbying_text_rect)
+            screen.blit(war_button_text, war_text_rect)
+            screen.blit(deforestation_text, deforestation_text_rect)
             py.draw.rect(screen, (255, 100, 100), menu_close_button)
             py.draw.rect(screen, (0, 0, 0), menu_close_button, 2)
-            py.draw.rect(screen, (100, 255, 100), parliment_confirm_button)
-            py.draw.rect(screen, (0, 0, 0), parliment_confirm_button, 2)
             py.draw.line(screen, (0, 0, 0), (menu.x + 20, menu.y + 140), (menu.right - 20, menu.y + 140), 3)
-            confirm_text = extrasmall_font.render("Confirm", True, (0, 0, 0))
-            confirm_rect = confirm_text.get_rect(center=parliment_confirm_button.center)
-            screen.blit(confirm_text, confirm_rect)
             close_text = extrasmall_font.render("Close", True, (0, 0, 0))
             close_rect = close_text.get_rect(center=menu_close_button.center)
             screen.blit(close_text, close_rect)
