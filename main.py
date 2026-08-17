@@ -341,7 +341,7 @@ while running:
                     pop_up_alert_timer = 0
 
                     if replaced_building == 'coal power plants':
-                        coal_power_plant_count -= removed_count
+                        coal_power_count -= removed_count
                     elif replaced_building == 'oil refineries':
                         oil_refinery_count -= removed_count
                     elif replaced_building == 'coal mines':
