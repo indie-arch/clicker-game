@@ -41,7 +41,14 @@ datacenter_count = 0
 datacenter_cost = 100
 lobbying_efforts = 0
 page = 1
+pop_up_alert_timer = 10
+replaced_building = "coal power plants"
+removed_count = 1
+wind_turbine_count = 0
+# Default for replaced building
 
+pop_up_descision_timer = py.USEREVENT + 9
+pop_up_timer = py.USEREVENT + 8
 lobbying_timer = py.USEREVENT + 7
 electricity_income_event = py.USEREVENT + 3
 py.time.set_timer(electricity_income_event, 1000)
@@ -70,6 +77,7 @@ datacenter_button_img = py.image.load('datacenter.bmp')
 arrow_img = py.image.load('arrow.bmp')
 other_arrow_img = py.image.load("otherarrow.bmp")
 oil_refinery_img = py.image.load("oil refinery.bmp")
+wind_turbine_img = py.image.load("Wind_turbine_icon.bmp")
 
 TRANSPARENT_COLOUR = (0, 0, 0)
 tree_img.set_colorkey(TRANSPARENT_COLOUR)
@@ -216,6 +224,11 @@ settings_open = False
 settings = py.Rect((width // 6, height // 6, 800, 600))
 settings_close_button = py.Rect(settings.right - 120, settings.bottom - 60, 100, 40)
 
+# pop up graphics
+pop_up_alert_open = False
+pop_up_alert = py.Rect((width // 6, height // 6, 800, 600))
+pop_up_close_button = py.Rect(pop_up_alert.left + 20, pop_up_alert.bottom - 70, 150, 50)
+pop_up_pay_button = py.Rect(pop_up_alert.right - 220, pop_up_alert.bottom - 70, 200, 50)
 
 minecart_scale = 0.13
 minecart_img = py.transform.scale(
@@ -228,7 +241,7 @@ minecart_rect = minecart_img.get_rect(topleft=(coal_button_rect.x + 8, coal_butt
 datacenter_rect = datacenter_button_img.get_rect(topleft=(10, 350))
 # Handler for inputs
 while running:
-    if money <= 0 or paused == True:
+    if money < 0 or paused == True:
         paused = True
         screen.fill((255, 0, 0))
         losing_text = large_font.render("You lose!", True, (0, 0, 0))
@@ -285,13 +298,51 @@ while running:
                     supporting = max(0, supporting - 10)
                     apposed = min(435, apposed + 10)
 
+        if event.type == pop_up_timer:
+            if not paused:
+                random_options = ["coal power plants", 'oil refineries', 'coal mines', 'datacenters']
+                replaced_building = random.choice(random_options)
+                if replaced_building == 'coal power plants':
+                    removed_count = random.randint(1, max(1, coal_plant_count))
+                if replaced_building == 'oil refineries':
+                    removed_count = random.randint(1, max(1, oil_refinery_count))
+                if replaced_building == 'coal mines':
+                    removed_count = random.randint(1, max(1, coal_mine_count))
+                if replaced_building == 'datacenters':
+                    removed_count = random.randint(1, max(1, datacenter_count))
+                pop_up_alert_open = True
+                menu_open = False
+                settings_open = False
+                pop_up_alert_timer = 10
+                py.time.set_timer(pop_up_descision_timer, 1000)
+                # Its intentional that it can sometimes ask to replace 0 buildings
+                # This means you have to read the alerts otherwise you can pay for nothing
+        
+        if event.type == pop_up_descision_timer:
+            if pop_up_alert_open:
+                pop_up_alert_timer -= 1
+
+            if pop_up_alert_timer <= 0:
+                pop_up_alert_timer = 0
+                if replaced_building == 'coal power plants':
+                    coal_mine_count -= removed_count
+                if replaced_building == 'oil refineries':
+                    oil_refinery_count -= removed_count
+                if replaced_building == 'coal mines':
+                    coal_mine_count -= removed_count
+                if replaced_building == 'datacenters':
+                    datacenter_count -= removed_count
+                wind_turbine_count += removed_count
+                pop_up_alert_open = False
+                py.time.set_timer(pop_up_descision_timer, 0)
+
         if event.type == py.MOUSEBUTTONDOWN:
             if event.button == 1: # Left click
                 # Menu subsection for inputs
                 if menu_open:
                     if menu_close_button.collidepoint(event.pos):
                         menu_open = False
-                    if lobbying_button.collidepoint(event.pos) and money > 1000 and lobbying_efforts < 44:
+                    if lobbying_button.collidepoint(event.pos) and money >= 1000 and lobbying_efforts < 44:
                         money -= 1000
                         supporting = min(435, supporting + 10)
                         apposed = max(0, apposed - 10)
@@ -302,11 +353,28 @@ while running:
                         middile_eastern_nations += 1
                         supporting = max(0, supporting - 50)
                         apposed = min(435, apposed + 50)
-                    if deforestation_law_button.collidepoint(event.pos) and supporting >= 10:
+                    if deforestation_law_button.collidepoint(event.pos) and supporting >= 10 and deforestation_laws < 5:
                         deforestation_laws += 1
                         supporting = max(0, supporting - 5)
                         apposed = min(435, apposed + 5)
-
+                if pop_up_alert_open:
+                    if pop_up_pay_rect.collidepoint(event.pos):
+                        if money >= 3000:
+                            money -= 3000
+                            pop_up_alert_open = False
+                            py.time.set_timer(pop_up_descision_timer, 0)
+                    if pop_up_close_button.collidepoint(event.pos):
+                            if replaced_building == 'coal power plants':
+                                coal_mine_count -= removed_count
+                            if replaced_building == 'oil refineries':
+                                oil_refinery_count -= removed_count
+                            if replaced_building == 'coal mines':
+                                coal_mine_count -= removed_count
+                            if replaced_building == 'datacenters':
+                                datacenter_count -= removed_count
+                            wind_turbine_count += removed_count
+                            pop_up_alert_open = False
+                            py.time.set_timer(pop_up_descision_timer, 0)
                 if tree_button_rect.collidepoint(event.pos):
                     if deforestation_laws > 0:
                         money += deforestation_laws * (10 * deforestation_laws) 
@@ -335,7 +403,7 @@ while running:
 
                 if page == 1:
                     if coal_button_rect.collidepoint(event.pos):
-                        if money > coal_plant_cost and coal >= 1:
+                        if money >= coal_plant_cost and coal >= 1:
                             money -= coal_plant_cost
                             #CRUCIAL COAL FUNCTIONALITY FOR COAL IMPLEMENTATION
                             coal_plant_count += 1
@@ -343,20 +411,22 @@ while running:
 
                 if page == 1:
                     if minecart_rect.collidepoint(event.pos):
-                        if money > 5:
+                        if money >= 5:
                             money -= 5
+                            if coal_mine_count == 0:
+                                py.time.set_timer(pop_up_timer, 90000)
                             coal_mine_count += 1
                         
                 if page == 1:  
                     if datacenter_rect.collidepoint(event.pos):
-                        if money > datacenter_cost and electricity > 0:
+                        if money >= datacenter_cost and electricity > 0:
                             money -= datacenter_cost
                             datacenter_count += 1
                             datacenter_cost = round(datacenter_cost * 1.4)
 
                 if page == 2:
                     if oil_refinery_rect.collidepoint(event.pos):
-                        if money > oil_refinery_cost and oil > 0:
+                        if money >= oil_refinery_cost and oil > 0:
                             money -= oil_refinery_cost
                             oil_refinery_count += 1
                             oil_refinery_cost = round(oil_refinery_cost * 1.4)
@@ -383,12 +453,16 @@ while running:
                         page = 1
                         deforestation_laws = 0
                         lobbying_efforts = 0
+                        pop_up_alert_open = False
+                        pop_up_alert_timer = 10
+                        menu_open = False
+                        wind_turbine_count = 0
         # Handler for keyboard inputs
         if event.type == py.KEYDOWN:
 
-            # Developer cheatcode for testing money decreasing
+            # Developer cheatcode for money decreasing
             if event.key == py.K_9:
-                money -= 1
+                money += 10000
             
             # Developer cheatcode for testing loseing 
             if event.key == py.K_8:
@@ -417,6 +491,12 @@ while running:
             # Adds middile eastern nations
             if event.key == py.K_2:
                 middile_eastern_nations += 1
+
+            # Developer cheatcode for triggering pop up
+            if event.key == py.K_1:
+                pop_up_alert_open = True
+                pop_up_alert_timer = 10
+                py.time.set_timer(pop_up_descision_timer, 1000)
 
     if paused == False:
         screen.fill(background_colour)
@@ -603,6 +683,9 @@ while running:
         if oil_surplus == True:
             screen.blit(oil_surplus_alert, (resources_x + 290, resources_y + 120))
 
+        wind_turbine_count_text = font.render(f"Wind Turbine Count: {wind_turbine_count}", True, (0, 0, 0))
+        screen.blit(wind_turbine_count_text, (resources_x, resources_y + 240))
+
         if page == 1:
             #coal plant text
             coal_plant_info = extrasmall_font.render(f"Coal Plants: {coal_plant_count}", True, (0, 0, 0))
@@ -611,11 +694,13 @@ while running:
             datacenter_info = extrasmall_font.render(f"Datacenters: {datacenter_count}", True, (0, 0, 0))
             datacenter_cost_info = extrasmall_font.render(f"Datacenter Cost: {datacenter_cost}", True, (0, 0, 0))
             coal_mine_count_info = extrasmall_font.render(f"Coal Mine Count {coal_mine_count}", True, (0, 0, 0))
+            coal_mine_cost_info = extrasmall_font.render("Coal Mine Cost: 5", True, (0, 0, 0))
             datacenter_electricity = extrasmall_font.render(f"Electricty Cost: 1", True, (0, 0, 0))
             screen.blit(coal_plant_info, (140, 180))
             screen.blit(coal_plant_cost_info, (140, 210))
             screen.blit(coal_cost, (140, 240))
             screen.blit(coal_mine_count_info, (140, 300))
+            screen.blit(coal_mine_cost_info, (140, 330))
             screen.blit(datacenter_info, (160, 410))
             screen.blit(datacenter_cost_info, (160, 390))
             screen.blit(datacenter_electricity, (160, 430))
@@ -639,7 +724,7 @@ while running:
             negative_influence_counter = font.render(f"Apposed: {apposed}", True, (0, 0, 0))
             positive_influence_counter = font.render(f"Supporting: {supporting}", True, (0, 0, 0))
             middile_eastern_nations_counter = font.render(f"Middile eastern nations: {middile_eastern_nations}", True, (0, 0, 0))
-            deforestation_laws_counter = font.render(f"Deforestation laws: {deforestation_laws}", True, (0, 0, 0))
+            deforestation_laws_counter = font.render(f"Deforestation laws: {deforestation_laws}/5", True, (0, 0, 0))
             screen.blit(menu_title, (menu.x + 20, menu.y + 20))
             screen.blit(middile_eastern_nations_counter, (menu.x + 20, menu.y + 240))
             screen.blit(deforestation_laws_counter, (menu.x + 20, menu.y + 280))
@@ -676,6 +761,28 @@ while running:
 
             py.draw.rect(screen, (255, 100, 100), settings_close_button)
             py.draw.rect(screen, (0, 0, 0), settings_close_button, 2)
+        if pop_up_alert_open:
+            py.draw.rect(screen, (255, 255, 255), pop_up_alert)
+            py.draw.rect(screen, (0, 0, 0), pop_up_alert, 5)
+
+            py.draw.rect(screen, (255, 100, 100), pop_up_close_button)
+            py.draw.rect(screen, (0, 0, 0), pop_up_close_button, 2)
+            pop_up_close_text = extrasmall_font.render("Replace Building", True, (0, 0, 0))
+            pop_up_close_rect = pop_up_close_text.get_rect(center=pop_up_close_button.center)
+            screen.blit(pop_up_close_text, pop_up_close_rect)
+
+            py.draw.rect(screen, (100, 255, 100), pop_up_pay_button)
+            py.draw.rect(screen, (0, 0, 0), pop_up_pay_button, 2)
+            pop_up_pay_text = extrasmall_font.render("Lobby parliment, cost: 3000", True, (0, 0, 0))
+            pop_up_pay_rect = pop_up_pay_text.get_rect(center=pop_up_pay_button.center)
+            screen.blit(pop_up_pay_text, pop_up_pay_rect)
+
+            alert_title = font.render(f"Parliment demands {removed_count} {replaced_building}", True, (0, 0, 0))
+            alert_info = font.render("replaced with wind turbines", True, (0, 0, 0))
+            alert_timer = font.render(f"You have {pop_up_alert_timer} seconds to respond", True, (0, 0, 0))
+            screen.blit(alert_title, (pop_up_alert.x + 20, pop_up_alert.y + 20))
+            screen.blit(alert_info, (pop_up_alert.x + 20, pop_up_alert.y + 50))
+            screen.blit(alert_timer, (pop_up_alert.x + 20, pop_up_alert.y + 80))
     py.display.flip()
 
 py.quit()
