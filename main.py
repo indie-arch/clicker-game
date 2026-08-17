@@ -168,6 +168,13 @@ little_oil_refinery_button_img = py.transform.scale(
 )
 little_oil_refinery_button_img.set_colorkey((255, 0, 0))
 
+little_wind_turbine_scale = 0.2
+little_wind_turbine_button_img = py.transform.scale(
+    wind_turbine_img,
+    (int(wind_turbine_img.get_width() * little_wind_turbine_scale), int(wind_turbine_img.get_height() * little_wind_turbine_scale)),
+)
+little_wind_turbine_button_img.set_colorkey((255, 0, 0))
+
 # Where the background image sits on screen, so plants only spawn on top of it
 background_rect = background_image.get_rect(topleft=(configs.SCREEN_WIDTH - 679, 0))
 
@@ -183,6 +190,10 @@ little_datacenter_max_y = background_rect.bottom - little_datacenter_button_img.
 little_oil_refinery_max_x = background_rect.right - little_oil_refinery_button_img.get_width()
 little_oil_refinery_max_y = background_rect.bottom - little_oil_refinery_button_img.get_height()
 
+# The furthest right/down a little wind turbine can start and still fit on the background
+little_wind_turbine_max_x = background_rect.right - little_wind_turbine_button_img.get_width()
+little_wind_turbine_max_y = background_rect.bottom - little_wind_turbine_button_img.get_height()
+
 # Holds one random (x, y) per built coal plant so they stay in the same spot each frame
 coal_plant_positions = []
 
@@ -191,6 +202,9 @@ datacenter_positions = []
 
 # Holds one (x, y) per built oil refinery, spawned on top of the coal plants
 oil_refinery_positions = []
+
+# Holds one (x, y) per built wind turbine, spawned on top of the background
+wind_turbine_positions = []
 
 coal_button_img.set_colorkey((255, 0, 0))
 coal_button_rect = coal_button_img.get_rect(topleft=(5, 100))
@@ -327,7 +341,7 @@ while running:
                     pop_up_alert_timer = 0
 
                     if replaced_building == 'coal power plants':
-                        coal_plant_count -= removed_count
+                        coal_power_plant_count -= removed_count
                     elif replaced_building == 'oil refineries':
                         oil_refinery_count -= removed_count
                     elif replaced_building == 'coal mines':
@@ -368,6 +382,7 @@ while running:
                             py.time.set_timer(pop_up_descision_timer, 0)
                     if pop_up_close_button.collidepoint(event.pos):
                             if replaced_building == 'coal power plants':
+                                coal_plant_count -= removed_count
                                 coal_plant_count -= removed_count
                             if replaced_building == 'oil refineries':
                                 oil_refinery_count -= removed_count
@@ -567,6 +582,22 @@ while running:
         # Draw every oil refinery at its saved spot
         for position in oil_refinery_positions:
             screen.blit(little_oil_refinery_button_img, position)
+
+        #little wind turbines
+        # Give any brand new wind turbine a random spot on the background image
+        while len(wind_turbine_positions) < wind_turbine_count:
+            wind_turbine_positions.append((
+                random.randint(background_rect.left, little_wind_turbine_max_x),
+                random.randint(background_rect.top, little_wind_turbine_max_y),
+            ))
+
+        # Forget spots for wind turbines we lost (game reset)
+        while len(wind_turbine_positions) > max(0, wind_turbine_count):
+            wind_turbine_positions.pop()
+
+        # Draw every wind turbine at its saved spot
+        for position in wind_turbine_positions:
+            screen.blit(little_wind_turbine_button_img, position)
 
         money_counter = font.render(f"Money: {money}", True, (0, 0, 0))
         screen.blit(money_counter, (20, 50))
