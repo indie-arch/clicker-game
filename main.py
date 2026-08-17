@@ -303,13 +303,13 @@ while running:
                 random_options = ["coal power plants", 'oil refineries', 'coal mines', 'datacenters']
                 replaced_building = random.choice(random_options)
                 if replaced_building == 'coal power plants':
-                    removed_count = random.randint(1, max(1, coal_plant_count))
-                if replaced_building == 'oil refineries':
-                    removed_count = random.randint(1, max(1, oil_refinery_count))
-                if replaced_building == 'coal mines':
-                    removed_count = random.randint(1, max(1, coal_mine_count))
-                if replaced_building == 'datacenters':
-                    removed_count = random.randint(1, max(1, datacenter_count))
+                    removed_count = random.randint(0, coal_plant_count)
+                elif replaced_building == 'oil refineries':
+                    removed_count = random.randint(0, oil_refinery_count)
+                elif replaced_building == 'coal mines':
+                    removed_count = random.randint(0, coal_mine_count)
+                elif replaced_building == 'datacenters':
+                    removed_count = random.randint(0, datacenter_count)
                 pop_up_alert_open = True
                 menu_open = False
                 settings_open = False
@@ -319,22 +319,25 @@ while running:
                 # This means you have to read the alerts otherwise you can pay for nothing
         
         if event.type == pop_up_descision_timer:
-            if pop_up_alert_open:
-                pop_up_alert_timer -= 1
+            if not paused:
+                if pop_up_alert_open:
+                    pop_up_alert_timer -= 1
 
-            if pop_up_alert_timer <= 0:
-                pop_up_alert_timer = 0
-                if replaced_building == 'coal power plants':
-                    coal_mine_count -= removed_count
-                if replaced_building == 'oil refineries':
-                    oil_refinery_count -= removed_count
-                if replaced_building == 'coal mines':
-                    coal_mine_count -= removed_count
-                if replaced_building == 'datacenters':
-                    datacenter_count -= removed_count
-                wind_turbine_count += removed_count
-                pop_up_alert_open = False
-                py.time.set_timer(pop_up_descision_timer, 0)
+                if pop_up_alert_timer <= 0:
+                    pop_up_alert_timer = 0
+
+                    if replaced_building == 'coal power plants':
+                        coal_power_plant_count -= removed_count
+                    elif replaced_building == 'oil refineries':
+                        oil_refinery_count -= removed_count
+                    elif replaced_building == 'coal mines':
+                        coal_mine_count -= removed_count
+                    elif replaced_building == 'datacenters':
+                        datacenter_count -= removed_count
+
+                    wind_turbine_count += removed_count
+                    pop_up_alert_open = False
+                    py.time.set_timer(pop_up_descision_timer, 0)
 
         if event.type == py.MOUSEBUTTONDOWN:
             if event.button == 1: # Left click
@@ -365,7 +368,7 @@ while running:
                             py.time.set_timer(pop_up_descision_timer, 0)
                     if pop_up_close_button.collidepoint(event.pos):
                             if replaced_building == 'coal power plants':
-                                coal_mine_count -= removed_count
+                                coal_power_plant_count -= removed_count
                             if replaced_building == 'oil refineries':
                                 oil_refinery_count -= removed_count
                             if replaced_building == 'coal mines':
@@ -457,6 +460,8 @@ while running:
                         pop_up_alert_timer = 10
                         menu_open = False
                         wind_turbine_count = 0
+                        py.time.set_timer(pop_up_descision_timer, 0)
+                        py.time.set_timer(pop_up_timer, 0)
         # Handler for keyboard inputs
         if event.type == py.KEYDOWN:
 
