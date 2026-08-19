@@ -373,10 +373,12 @@ while running:
             if not paused:
                 money += coal_plant_count
                 coal -= coal_plant_count
+                coal = min(999, coal)
 
         if event.type == coal_mine_income_event:
             if not paused:
                 coal += coal_mine_count
+                coal = min(999, coal)
 
         if event.type == datacenter_income_event:
             if not paused:
@@ -386,15 +388,18 @@ while running:
             if not paused:
                 electricity += (coal_plant_count + (oil_refinery_count * 10)) 
                 electricity -= datacenter_count
+                electricity = min(999, electricity)
 
         if event.type == oil_refinery_income_event:
             if not paused:
                 money += oil_refinery_count * 5
                 oil -= oil_refinery_count
+                oil = min(999, oil)
 
         if event.type == middile_eastern_income_event:
             if not paused:
                 oil += middile_eastern_nations
+                oil = min(999, oil)
 
         if event.type == lobbying_timer:
             if not paused:
@@ -610,7 +615,7 @@ while running:
 
                 # Developer cheatcode for adding coal
                 if event.key == py.K_7:
-                    coal += 1
+                    coal = min(999, coal + 1)
 
                 # Developer cheatcode for adding coal powerplants
                 if event.key == py.K_6:
@@ -738,6 +743,7 @@ while running:
             coal_plant_count = max(0, coal_plant_count - 1)
         elif coal >= 2 or coal_mine_count == coal_plant_count:
             coal_shortage = False
+        coal = min(999, coal)
 
         # Reset flags so only one alert displays at a time
         coal_surplus = False
@@ -780,6 +786,7 @@ while running:
             datacenter_count = max(0, datacenter_count - 1)
         elif electricity >= 2 or (coal_plant_count + (oil_refinery_count * 10)) == datacenter_count:
             electricity_shortage = False
+        electricity = min(999, electricity)
 
         # Reset electricity status flags before determining the current alert.
         electricity_surplus = False
@@ -815,6 +822,7 @@ while running:
             oil_refinery_count = max(0, oil_refinery_count - 1)
         elif oil >= 2 or oil_refinery_count == middile_eastern_nations:
             oil_shortage = False
+        oil = min(999, oil)
 
         # Reset electricity status flags before determining the current alert.
         oil_surplus = False
