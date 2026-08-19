@@ -30,6 +30,10 @@ oil_shortage = False
 oil_neutral = True
 oil_surplus = False
 oil_deficit = False
+nuclear_meltdown = False
+uranium_neutral = True
+uranium_surplus = False
+uranium_deficit = False
 apposed = 435
 supporting = 0
 coal_plant_count = 0
@@ -47,9 +51,16 @@ removed_count = 1
 wind_turbine_count = 0
 nuclear_plant_count = 0
 nuclear_reactor_cost = 1000
+uranium = 0
+exploited_african_nations = 0
 clock = py.time.Clock()
 # Default for replaced building
 
+african_nation_income = py.USEREVENT + 12
+py.time.set_timer(african_nation_income, 1000)
+nuclear_plant_income = py.USEREVENT + 11
+py.time.set_timer(nuclear_plant_income, 1000)
+nuclear_meltdown_event = py.USEREVENT + 10
 pop_up_descision_timer = py.USEREVENT + 9
 pop_up_timer = py.USEREVENT + 8
 lobbying_timer = py.USEREVENT + 7
@@ -82,6 +93,7 @@ other_arrow_img = py.image.load("models/otherarrow.bmp")
 oil_refinery_img = py.image.load("models/oil refinery.bmp")
 wind_turbine_img = py.image.load("models/Wind_turbine_icon.bmp")
 nuclear_reactor_img = py.image.load("models/Nuclear plant icon.bmp")
+meltdown_alert = py.image.load("models/meltdown.bmp")
 
 TRANSPARENT_COLOUR = (0, 0, 0)
 tree_img.set_colorkey(TRANSPARENT_COLOUR)
@@ -120,6 +132,12 @@ nuclear_plant_scale = 0.15
 nuclear_reactor_img = py.transform.scale(
     nuclear_reactor_img,
     (int(nuclear_reactor_img.get_width() * nuclear_plant_scale), int(nuclear_reactor_img.get_height() * nuclear_plant_scale))
+)
+
+meltdown_alert_scale = 1
+meltdown_alert = py.transform.scale(
+    meltdown_alert,
+    (int(meltdown_alert.get_width() * meltdown_alert_scale), int(meltdown_alert.get_height() * meltdown_alert_scale))
 )
 oil_refinery_img.set_colorkey((255, 0, 0))
 # Read screen dimensions from configs so they can be tweaked in one place
@@ -227,6 +245,8 @@ arrow_button_rect = arrow_img.get_rect(topleft=(arrow_x, arrow_y))
 other_arrow_button_rect = other_arrow_img.get_rect(topleft=(other_arrow_x, arrow_y))
 coal_plant_rect = coal_plant.get_rect(topleft=(width - 800, 300))
 oil_refinery_rect = oil_refinery_img.get_rect(topleft=(coal_button_rect.x, coal_button_rect.y))
+meltdown_alert_rect = meltdown_alert.get_rect()
+meltdown_alert_rect.center = screen.get_rect().center
 running = True
 
 # Menu graphics
@@ -236,6 +256,7 @@ menu_close_button = py.Rect(menu.right - 120, menu.bottom - 60, 100, 40)
 lobbying_button = py.Rect(menu.x + 20, menu.y + 160, 200, 40)
 war_button = py.Rect(menu.x + 240, menu.y + 160, 340, 40)
 deforestation_law_button = py.Rect(menu.x + 20, menu.y + 200, 300, 40)
+exploit_african_nation_button = py.Rect(menu.x + 340, menu.y + 200, 300, 40)
 
 # Settings menu graphics
 settings_open = False
@@ -295,7 +316,7 @@ while running:
 
         if event.type == electricity_income_event:
             if not paused:
-                electricity += (coal_plant_count + (oil_refinery_count * 10)) 
+                electricity += (coal_plant_count + (oil_refinery_count * 10) + (nuclear_plant_count * 100)) 
                 electricity -= datacenter_count
 
         if event.type == oil_refinery_income_event:
@@ -357,6 +378,22 @@ while running:
                     pop_up_alert_open = False
                     py.time.set_timer(pop_up_descision_timer, 0)
 
+        if event.type == nuclear_meltdown_event:
+            if not paused:
+                money -= 10000
+                nuclear_plant_count = 0
+                uranium = 0
+                py.time.set_timer(nuclear_meltdown_event, 0)
+                nuclear_meltdown = False
+        if event.type == nuclear_plant_income:
+            if not paused:
+                money += (nuclear_plant_count * 120)
+                uranium -= nuclear_plant_count
+
+        if event.type == african_nation_income:
+            if not paused:
+                uranium += exploited_african_nations
+        
         if event.type == py.MOUSEBUTTONDOWN:
             if event.button == 1: # Left click
                 # Menu subsection for inputs
@@ -395,8 +432,12 @@ while running:
                         py.time.set_timer(pop_up_descision_timer, 0)
                         py.time.set_timer(pop_up_timer, 0)
                         py.time.set_timer(lobbying_timer, 0)
+                        py.time.set_timer(nuclear_meltdown_event, 0)
                         nuclear_plant_count = 0
                         nuclear_reactor_cost = 1000
+                        uranium = 0
+                        nuclear_meltdown = False
+                        exploited_african_nations = 0
 
                 elif pop_up_alert_open:
                     if pop_up_pay_button.collidepoint(event.pos):
@@ -435,6 +476,10 @@ while running:
                         deforestation_laws += 1
                         supporting = max(0, supporting - 5)
                         apposed = min(435, apposed + 5)
+                    if exploit_african_nation_button.collidepoint(event.pos) and supporting >= 200:
+                        exploited_african_nations += 1
+                        supporting = max(0, supporting - 100)
+                        apposed = min(435, apposed + 100)
 
                 elif settings_open:
                     if settings_close_button.collidepoint(event.pos):
@@ -492,6 +537,13 @@ while running:
                                 money -= oil_refinery_cost
                                 oil_refinery_count += 1
                                 oil_refinery_cost = round(oil_refinery_cost * 1.4)
+
+                    if page == 2:
+                        if nuclear_plant_rect.collidepoint(event.pos):
+                            if money >= nuclear_reactor_cost and uranium > 0:
+                                money -= nuclear_reactor_cost
+                                nuclear_plant_count += 1
+                                nuclear_reactor_cost = round(nuclear_reactor_cost * 1.4)
 
         # Handler for keyboard inputs
         if event.type == py.KEYDOWN:
@@ -738,6 +790,45 @@ while running:
         if oil_surplus == True:
             screen.blit(oil_surplus_alert, (resources_x + 290, resources_y + 120))
 
+        if uranium <= -1 and not nuclear_meltdown:
+            nuclear_meltdown = True
+            py.time.set_timer(nuclear_meltdown_event, 2000)
+
+        if nuclear_meltdown:
+            screen.blit(meltdown_alert, meltdown_alert_rect)
+            # meltdown instantly destroys all nuclear reactors and costs money
+            # Also causes enviromental destruction
+        elif exploited_african_nations >= nuclear_plant_count:
+            nuclear_meltdown = False
+
+        uranium_surplus = False
+        uranium_deficit = False
+        uranium_neutral = False
+
+        if nuclear_meltdown:
+            pass 
+        elif exploited_african_nations == nuclear_plant_count:
+            uranium_neutral = True
+        elif nuclear_plant_count > exploited_african_nations:
+            uranium_deficit = True
+        elif exploited_african_nations > nuclear_plant_count:
+            uranium_surplus = True
+
+        uranium_count_text = font.render(f"Uranium: {uranium}", True, (0, 0, 0))
+        nuclear_meltdown_alert = font.render("MELTDOWN!", True, (255, 0, 0))
+        uranium_neutral_alert = font.render("Uranium Neutral!", True, (0, 0, 0))
+        uranium_deficit_alert = font.render("Uranium Deficit!", True, (255, 165, 0))
+        uranium_surplus_alert = font.render("Uranium Surplus!", True, (0, 255, 0))
+        screen.blit(uranium_count_text, (resources_x, resources_y + 180))
+        if nuclear_meltdown == True:
+            screen.blit(nuclear_meltdown_alert, (resources_x + 290, resources_y + 180))
+        if uranium_deficit == True:
+            screen.blit(uranium_deficit_alert, (resources_x + 290, resources_y + 180))
+        if uranium_neutral == True:
+            screen.blit(uranium_neutral_alert, (resources_x + 290, resources_y + 180))
+        if uranium_surplus == True:
+            screen.blit(uranium_surplus_alert, (resources_x + 290, resources_y + 180))
+
         wind_turbine_count_text = font.render(f"Wind Turbine Count: {wind_turbine_count}", True, (0, 0, 0))
         screen.blit(wind_turbine_count_text, (resources_x, resources_y + 240))
 
@@ -799,15 +890,20 @@ while running:
             py.draw.rect(screen, (0, 0, 0), war_button, 2)
             py.draw.rect(screen, (50, 255, 50), deforestation_law_button)
             py.draw.rect(screen, (0, 0, 0), deforestation_law_button, 2)
+            py.draw.rect(screen, (255, 50, 50), exploit_african_nation_button)
+            py.draw.rect(screen, (0, 0, 0), exploit_african_nation_button, 2)
             lobbying_text = button_text = extrasmall_font.render(f"Lobbying efforts: {lobbying_efforts}", True, (0, 0, 0))
             lobbying_text_rect = button_text.get_rect(center=lobbying_button.center)
             war_text = war_button_text = extrasmall_font.render("Invade middile eastern nation, requires 100 support", True, (0, 0, 0))
             war_text_rect = war_button_text.get_rect(center=war_button.center)
             deforestation_text = deforestation_button_text = extrasmall_font.render("Deforestation law, requires 10 support", True, (0, 0, 0))
             deforestation_text_rect = deforestation_text.get_rect(center=deforestation_law_button.center)
+            exploit_africa_text = exploit_african_nation_button_text = extrasmall_font.render("Exploit african nation, requires 200 support", True, (0, 0, 0))
+            exploit_african_nation_button_text_rect = exploit_africa_text.get_rect(center=exploit_african_nation_button.center)
             screen.blit(button_text, lobbying_text_rect)
             screen.blit(war_button_text, war_text_rect)
             screen.blit(deforestation_text, deforestation_text_rect)
+            screen.blit(exploit_africa_text, exploit_african_nation_button_text_rect)
             py.draw.rect(screen, (255, 100, 100), menu_close_button)
             py.draw.rect(screen, (0, 0, 0), menu_close_button, 2)
             py.draw.line(screen, (0, 0, 0), (menu.x + 20, menu.y + 140), (menu.right - 20, menu.y + 140), 3)
