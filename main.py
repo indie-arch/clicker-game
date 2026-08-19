@@ -5,6 +5,7 @@
 # 3) git push
 # pull if it tells you to its just git pull
 import sys
+import json
 import pygame as py
 import configs
 import random
@@ -82,6 +83,7 @@ other_arrow_img = py.image.load("models/otherarrow.bmp")
 oil_refinery_img = py.image.load("models/oil refinery.bmp")
 wind_turbine_img = py.image.load("models/Wind_turbine_icon.bmp")
 nuclear_reactor_img = py.image.load("models/Nuclear plant icon.bmp")
+save_img = py.image.load('models/save.bmp')
 
 TRANSPARENT_COLOUR = (0, 0, 0)
 tree_img.set_colorkey(TRANSPARENT_COLOUR)
@@ -221,12 +223,91 @@ settings_img = py.transform.scale(
 settings_img.set_colorkey((255, 0, 0))
 settings_button_rect = settings_img.get_rect(bottomright=(width - 10, height - 10))
 
+save_scale = 0.11
+save_img = py.transform.scale(
+    save_img,
+    (int(save_img.get_width() * save_scale), int(save_img.get_height() * save_scale)),
+)
+save_img.set_colorkey((255, 0, 0))
+save_button_rect = save_img.get_rect(bottomright=(settings_button_rect.left - 10, height - 10))
+
 tree_button_rect = tree_img.get_rect(topleft=(tree_x, tree_y))
 parliment_button_rect = parliment_button.get_rect(topleft=(parliment_x, parliment_y))
 arrow_button_rect = arrow_img.get_rect(topleft=(arrow_x, arrow_y))
 other_arrow_button_rect = other_arrow_img.get_rect(topleft=(other_arrow_x, arrow_y))
 coal_plant_rect = coal_plant.get_rect(topleft=(width - 800, 300))
 oil_refinery_rect = oil_refinery_img.get_rect(topleft=(coal_button_rect.x, coal_button_rect.y))
+
+# Save file location
+save_file = 'savegame.json'
+
+# Function to save game stats into a json file
+def save_game():
+    global save_feedback
+    # Pack game variables into a dictionary
+    save_data = {
+        'money': money,
+        'coal': coal,
+        'oil': oil,
+        'electricity': electricity,
+        'middile_eastern_nations': middile_eastern_nations,
+        'deforestation_laws': deforestation_laws,
+        'apposed': apposed,
+        'supporting': supporting,
+        'coal_plant_count': coal_plant_count,
+        'coal_plant_cost': coal_plant_cost,
+        'coal_mine_count': coal_mine_count,
+        'oil_refinery_count': oil_refinery_count,
+        'oil_refinery_cost': oil_refinery_cost,
+        'datacenter_count': datacenter_count,
+        'datacenter_cost': datacenter_cost,
+        'lobbying_efforts': lobbying_efforts,
+        'page': page,
+        'wind_turbine_count': wind_turbine_count,
+        'nuclear_plant_count': nuclear_plant_count,
+        'nuclear_reactor_cost': nuclear_reactor_cost,
+    }
+    # Write dictionary to json file
+    with open(save_file, 'w') as f:
+        json.dump(save_data, f, indent=4)
+    save_feedback = "Game saved!"
+
+# Function to load game stats from the json file
+def load_game():
+    global money, coal, oil, electricity, middile_eastern_nations, deforestation_laws
+    global apposed, supporting, coal_plant_count, oil_refinery_count, oil_refinery_cost
+    global coal_mine_count, coal_plant_cost, datacenter_count, datacenter_cost, save_feedback
+    global lobbying_efforts, page, wind_turbine_count, nuclear_plant_count, nuclear_reactor_cost
+    try:
+        # Read the dictionary from the json file
+        with open(save_file, 'r') as f:
+            data = json.load(f)
+        # Restore all the stats
+        money = data['money']
+        coal = data['coal']
+        oil = data['oil']
+        electricity = data['electricity']
+        middile_eastern_nations = data['middile_eastern_nations']
+        deforestation_laws = data['deforestation_laws']
+        apposed = data['apposed']
+        supporting = data['supporting']
+        coal_plant_count = data['coal_plant_count']
+        coal_plant_cost = data['coal_plant_cost']
+        coal_mine_count = data['coal_mine_count']
+        oil_refinery_count = data['oil_refinery_count']
+        oil_refinery_cost = data['oil_refinery_cost']
+        datacenter_count = data['datacenter_count']
+        datacenter_cost = data['datacenter_cost']
+        lobbying_efforts = data['lobbying_efforts']
+        page = data['page']
+        wind_turbine_count = data['wind_turbine_count']
+        nuclear_plant_count = data['nuclear_plant_count']
+        nuclear_reactor_cost = data['nuclear_reactor_cost']
+        save_feedback = "Game loaded!"
+    except:
+        # If the file doesn't exist yet
+        save_feedback = "No save file found!"
+
 running = True
 
 # Menu graphics
@@ -241,6 +322,14 @@ deforestation_law_button = py.Rect(menu.x + 20, menu.y + 200, 300, 40)
 settings_open = False
 settings = py.Rect((width // 6, height // 6, 800, 600))
 settings_close_button = py.Rect(settings.right - 120, settings.bottom - 60, 100, 40)
+
+# Save/Load menu graphics
+save_open = False
+save_menu = py.Rect((width // 6, height // 6, 800, 600))
+save_close_button = py.Rect(save_menu.right - 120, save_menu.bottom - 60, 100, 40)
+save_game_button = py.Rect(save_menu.x + 20, save_menu.y + 160, 200, 40)
+load_game_button = py.Rect(save_menu.x + 240, save_menu.y + 160, 200, 40)
+save_feedback = ""
 
 # pop up graphics
 pop_up_alert_open = False
@@ -387,6 +476,7 @@ while running:
                         pop_up_alert_timer = 10
                         menu_open = False
                         settings_open = False
+                        save_open = False
                         wind_turbine_count = 0
                         coal_plant_positions.clear()
                         datacenter_positions.clear()
@@ -440,6 +530,14 @@ while running:
                     if settings_close_button.collidepoint(event.pos):
                         settings_open = False
 
+                elif save_open:
+                    if save_close_button.collidepoint(event.pos):
+                        save_open = False
+                    if save_game_button.collidepoint(event.pos):
+                        save_game()
+                    if load_game_button.collidepoint(event.pos):
+                        load_game()
+
                 else:
                     if tree_button_rect.collidepoint(event.pos):
                         if deforestation_laws > 0:
@@ -462,6 +560,12 @@ while running:
                     if settings_button_rect.collidepoint(event.pos):
                         settings_open = True
                         menu_open = False
+
+                    if save_button_rect.collidepoint(event.pos):
+                        save_open = True
+                        menu_open = False
+                        settings_open = False
+                        save_feedback = ""
 
                     if page == 1:
                         if coal_button_rect.collidepoint(event.pos):
@@ -546,6 +650,8 @@ while running:
         screen.blit(parliment_button, parliment_button_rect)
 
         screen.blit(settings_img, settings_button_rect)
+
+        screen.blit(save_img, save_button_rect)
 
         screen.blit(other_arrow_img, other_arrow_button_rect)
 
@@ -823,6 +929,33 @@ while running:
 
             py.draw.rect(screen, (255, 100, 100), settings_close_button)
             py.draw.rect(screen, (0, 0, 0), settings_close_button, 2)
+        if save_open:
+            py.draw.rect(screen, (255, 255, 255), save_menu)
+            py.draw.rect(screen, (0, 0, 0), save_menu, 5)
+
+            save_title = font.render("Save / Load", True, (0, 0, 0))
+            screen.blit(save_title, (save_menu.x + 20, save_menu.y + 20))
+
+            py.draw.rect(screen, (100, 255, 100), save_game_button)
+            py.draw.rect(screen, (0, 0, 0), save_game_button, 2)
+            save_game_text = extrasmall_font.render("Save Game", True, (0, 0, 0))
+            save_game_rect = save_game_text.get_rect(center=save_game_button.center)
+            screen.blit(save_game_text, save_game_rect)
+
+            py.draw.rect(screen, (100, 200, 255), load_game_button)
+            py.draw.rect(screen, (0, 0, 0), load_game_button, 2)
+            load_game_text = extrasmall_font.render("Load Game", True, (0, 0, 0))
+            load_game_rect = load_game_text.get_rect(center=load_game_button.center)
+            screen.blit(load_game_text, load_game_rect)
+
+            save_feedback_text = font.render(save_feedback, True, (0, 0, 0))
+            screen.blit(save_feedback_text, (save_menu.x + 20, save_menu.y + 240))
+
+            py.draw.rect(screen, (255, 100, 100), save_close_button)
+            py.draw.rect(screen, (0, 0, 0), save_close_button, 2)
+            close_text = extrasmall_font.render("Close", True, (0, 0, 0))
+            close_rect = close_text.get_rect(center=save_close_button.center)
+            screen.blit(close_text, close_rect)
         if pop_up_alert_open:
             py.draw.rect(screen, (255, 255, 255), pop_up_alert)
             py.draw.rect(screen, (0, 0, 0), pop_up_alert, 5)
