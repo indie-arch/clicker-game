@@ -1,0 +1,7 @@
+# Save files
+savegame.json
+*.json
+
+# Python cache
+__pycache__/
+*.pyc
