@@ -45,6 +45,8 @@ pop_up_alert_timer = 10
 replaced_building = "coal power plants"
 removed_count = 1
 wind_turbine_count = 0
+nuclear_plant_count = 0
+nuclear_reactor_cost = 1000
 clock = py.time.Clock()
 # Default for replaced building
 
@@ -79,6 +81,7 @@ arrow_img = py.image.load('models/arrow.bmp')
 other_arrow_img = py.image.load("models/otherarrow.bmp")
 oil_refinery_img = py.image.load("models/oil refinery.bmp")
 wind_turbine_img = py.image.load("models/Wind_turbine_icon.bmp")
+nuclear_reactor_img = py.image.load("models/Nuclear plant icon.bmp")
 
 TRANSPARENT_COLOUR = (0, 0, 0)
 tree_img.set_colorkey(TRANSPARENT_COLOUR)
@@ -111,6 +114,12 @@ oil_refinery_scale = 0.3
 oil_refinery_img = py.transform.scale(
     oil_refinery_img,
     (int(oil_refinery_img.get_width() * oil_refinery_scale), int(oil_refinery_img.get_height() * oil_refinery_scale))
+)
+
+nuclear_plant_scale = 0.15
+nuclear_reactor_img = py.transform.scale(
+    nuclear_reactor_img,
+    (int(nuclear_reactor_img.get_width() * nuclear_plant_scale), int(nuclear_reactor_img.get_height() * nuclear_plant_scale))
 )
 oil_refinery_img.set_colorkey((255, 0, 0))
 # Read screen dimensions from configs so they can be tweaked in one place
@@ -169,7 +178,7 @@ little_oil_refinery_button_img = py.transform.scale(
 )
 little_oil_refinery_button_img.set_colorkey((255, 0, 0))
 
-little_wind_turbine_scale = 0.2
+little_wind_turbine_scale = 0.035
 little_wind_turbine_button_img = py.transform.scale(
     wind_turbine_img,
     (int(wind_turbine_img.get_width() * little_wind_turbine_scale), int(wind_turbine_img.get_height() * little_wind_turbine_scale)),
@@ -246,7 +255,7 @@ minecart_img = py.transform.scale(
 )
 minecart_img.set_colorkey((255, 0, 0))
 minecart_rect = minecart_img.get_rect(topleft=(coal_button_rect.x + 8, coal_button_rect.y + coal_button_rect.height - 30))
-
+nuclear_plant_rect = nuclear_reactor_img.get_rect(topleft=(minecart_rect.x, minecart_rect.y - 40))
 datacenter_rect = datacenter_button_img.get_rect(topleft=(10, 350))
 # Handler for inputs
 while running:
@@ -386,6 +395,8 @@ while running:
                         py.time.set_timer(pop_up_descision_timer, 0)
                         py.time.set_timer(pop_up_timer, 0)
                         py.time.set_timer(lobbying_timer, 0)
+                        nuclear_plant_count = 0
+                        nuclear_reactor_cost = 1000
 
                 elif pop_up_alert_open:
                     if pop_up_pay_button.collidepoint(event.pos):
@@ -760,6 +771,13 @@ while running:
             screen.blit(oil_plant_info, (140, 160))
             screen.blit(oil_plant_cost_info, (140, 190))
             screen.blit(oil_cost, (140, 220))
+            screen.blit(nuclear_reactor_img, nuclear_plant_rect)
+            nuclear_reactor_info = extrasmall_font.render(f"Nuclear Plant: {nuclear_plant_count}", True, (0, 0, 0))
+            nuclear_reactor_cost_info = extrasmall_font.render(f"Nuclear Plant Cost: {nuclear_reactor_cost}", True, (0, 0, 0))
+            nuclear_reactor_upkeep = extrasmall_font.render(f"Uranium Consumption: 1", True, (0, 0, 0))
+            screen.blit(nuclear_reactor_info, (140, 275))
+            screen.blit(nuclear_reactor_cost_info, (140, 305))
+            screen.blit(nuclear_reactor_upkeep, (140, 335))
         if menu_open:
             py.draw.rect(screen, (255, 255, 255), menu)
             py.draw.rect(screen, (0, 0, 0), menu, 5)
