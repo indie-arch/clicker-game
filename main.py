@@ -291,6 +291,7 @@ def save_game():
         'nuclear_plant_count': nuclear_plant_count,
         'nuclear_reactor_cost': nuclear_reactor_cost,
         'environmental_destruction': environmental_destruction
+        'exploited_african_nations': exploited_african_nations
     }
     # Write dictionary to json file
     with open(save_file, 'w') as f:
@@ -303,7 +304,7 @@ def load_game():
     global apposed, supporting, coal_plant_count, oil_refinery_count, oil_refinery_cost
     global coal_mine_count, coal_plant_cost, datacenter_count, datacenter_cost, save_feedback
     global lobbying_efforts, page, wind_turbine_count, nuclear_plant_count, nuclear_reactor_cost
-    global environmental_destruction
+    global environmental_destruction, exploited_african_nations
     try:
         # Read the dictionary from the json file
         with open(save_file, 'r') as f:
@@ -330,6 +331,7 @@ def load_game():
         nuclear_plant_count = data['nuclear_plant_count']
         nuclear_reactor_cost = data['nuclear_reactor_cost']
         environmental_destruction = data['environmental_destruction']
+        exploited_african_nations = data['exploited_african_nations']
         save_feedback = "Game loaded!"
     except:
         # If the file doesn't exist yet
