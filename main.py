@@ -54,9 +54,12 @@ nuclear_plant_count = 0
 nuclear_reactor_cost = 1000
 uranium = 0
 exploited_african_nations = 0
+environmental_destruction = 0
 clock = py.time.Clock()
 # Default for replaced building
 
+wind_turbine_cleaning = py.USEREVENT + 13
+py.time.set_timer(wind_turbine_cleaning, 1000)
 african_nation_income = py.USEREVENT + 12
 py.time.set_timer(african_nation_income, 1000)
 nuclear_plant_income = py.USEREVENT + 11
@@ -78,6 +81,7 @@ py.time.set_timer(oil_refinery_income_event, 1000)
 middile_eastern_income_event = py.USEREVENT + 6
 py.time.set_timer(middile_eastern_income_event, 1000)
 extrasmall_font = py.font.SysFont(None, configs.EXTRA_SMALL_FONT_SIZE)
+small_font = py.font.SysFont(None, configs.SMALLER_FONT_SIZE)
 font = py.font.SysFont(None, configs.SMALL_FONT_SIZE)
 large_font = py.font.SysFont(None, configs.LARGE_FONT_SIZE)
 
@@ -286,6 +290,7 @@ def save_game():
         'wind_turbine_count': wind_turbine_count,
         'nuclear_plant_count': nuclear_plant_count,
         'nuclear_reactor_cost': nuclear_reactor_cost,
+        'environmental_destruction': environmental_destruction
     }
     # Write dictionary to json file
     with open(save_file, 'w') as f:
@@ -298,6 +303,7 @@ def load_game():
     global apposed, supporting, coal_plant_count, oil_refinery_count, oil_refinery_cost
     global coal_mine_count, coal_plant_cost, datacenter_count, datacenter_cost, save_feedback
     global lobbying_efforts, page, wind_turbine_count, nuclear_plant_count, nuclear_reactor_cost
+    global environmental_destruction
     try:
         # Read the dictionary from the json file
         with open(save_file, 'r') as f:
@@ -323,6 +329,7 @@ def load_game():
         wind_turbine_count = data['wind_turbine_count']
         nuclear_plant_count = data['nuclear_plant_count']
         nuclear_reactor_cost = data['nuclear_reactor_cost']
+        environmental_destruction = data['environmental_destruction']
         save_feedback = "Game loaded!"
     except:
         # If the file doesn't exist yet
@@ -369,7 +376,7 @@ nuclear_plant_rect = nuclear_reactor_img.get_rect(topleft=(minecart_rect.x, mine
 datacenter_rect = datacenter_button_img.get_rect(topleft=(10, 350))
 # Handler for inputs
 while running:
-    if money < 0 or paused == True:
+    if money < 0:
         paused = True
         screen.fill((255, 0, 0))
         losing_text = large_font.render("You lose!", True, (0, 0, 0))
@@ -382,8 +389,19 @@ while running:
         screen.blit(losing_text, losing_text_rect)
         screen.blit(play_again_button_text, play_again_text_rect)
         py.display.flip()
-        
-
+    if environmental_destruction >= 100 and money > -1:
+        paused = True
+        screen.fill((0, 225, 0))
+        winning_text = large_font.render("You Win!", True, (0, 0, 0))
+        winning_text_rect = winning_text.get_rect(midtop=(width // 2, 20))
+        play_again_button = py.Rect(0, 0, 400, 100)
+        play_again_button.midtop = (width // 2, 640)
+        play_again_button_text = font.render("Play Again", True, (0, 0, 0))        
+        play_again_text_rect = play_again_button_text.get_rect(center=play_again_button.center)
+        py.draw.rect(screen, (255, 0, 0), play_again_button)
+        screen.blit(winning_text, winning_text_rect)
+        screen.blit(play_again_button_text, play_again_text_rect)
+        py.display.flip()
     for event in py.event.get():
         if event.type == py.QUIT:
             running = False
@@ -395,6 +413,7 @@ while running:
                 money += coal_plant_count
                 coal -= coal_plant_count
                 coal = min(999, coal)
+                environmental_destruction += (coal_plant_count / 100)
 
         if event.type == coal_mine_income_event:
             if not paused:
@@ -404,6 +423,7 @@ while running:
         if event.type == datacenter_income_event:
             if not paused:
                 money += datacenter_count * 10
+                environmental_destruction += (datacenter_count / 70)
 
         if event.type == electricity_income_event:
             if not paused:
@@ -416,6 +436,7 @@ while running:
                 money += oil_refinery_count * 5
                 oil -= oil_refinery_count
                 oil = min(999, oil)
+                environmental_destruction += (oil_refinery_count / 50)
 
         if event.type == middile_eastern_income_event:
             if not paused:
@@ -433,7 +454,7 @@ while running:
 
         if event.type == pop_up_timer:
             if not paused:
-                random_options = ["coal power plants", 'oil refineries', 'coal mines', 'datacenters']
+                random_options = ["coal power plants", 'oil refineries', 'coal mines', 'datacenters', 'uranium mines', 'oil mines']
                 replaced_building = random.choice(random_options)
                 if replaced_building == 'coal power plants':
                     removed_count = random.randint(0, coal_plant_count)
@@ -443,6 +464,10 @@ while running:
                     removed_count = random.randint(0, coal_mine_count)
                 elif replaced_building == 'datacenters':
                     removed_count = random.randint(0, datacenter_count)
+                elif replaced_building == 'uranium mines':
+                    removed_count = random.randint(0, exploited_african_nations)
+                elif replaced_building == 'oil mines':
+                    removed_count = random.randint(0, middile_eastern_nations)
                 pop_up_alert_open = True
                 menu_open = False
                 settings_open = False
@@ -467,6 +492,10 @@ while running:
                         coal_mine_count -= removed_count
                     elif replaced_building == 'datacenters':
                         datacenter_count -= removed_count
+                    elif replaced_building == 'uranium mines':
+                        exploited_african_nations -= removed_count
+                    elif replaced_building == 'oil mines':
+                        middile_eastern_nations -= removed_count
 
                     wind_turbine_count += removed_count
                     pop_up_alert_open = False
@@ -474,9 +503,14 @@ while running:
 
         if event.type == nuclear_meltdown_event:
             if not paused:
-                money -= 10000
+                money -= 100000
                 nuclear_plant_count = 0
+                datacenter_count = 0
+                coal_mine_count = 0
+                coal_plant_count = 0
+                oil_refinery_count = 0
                 uranium = 0
+                environmental_destruction += 50
                 py.time.set_timer(nuclear_meltdown_event, 0)
                 nuclear_meltdown = False
         if event.type == nuclear_plant_income:
@@ -487,6 +521,11 @@ while running:
         if event.type == african_nation_income:
             if not paused:
                 uranium += exploited_african_nations
+
+        if event.type == wind_turbine_cleaning:
+            if not paused:
+                money -= (wind_turbine_count * 10)
+                environmental_destruction -= (wind_turbine_count / 10)
         
         if event.type == py.MOUSEBUTTONDOWN:
             if event.button == 1: # Left click
@@ -533,11 +572,12 @@ while running:
                         uranium = 0
                         nuclear_meltdown = False
                         exploited_african_nations = 0
+                        environmental_destruction = 0
 
                 elif pop_up_alert_open:
                     if pop_up_pay_button.collidepoint(event.pos):
-                        if money >= 3000:
-                            money -= 3000
+                        if money >= 10000:
+                            money -= 10000
                             pop_up_alert_open = False
                             py.time.set_timer(pop_up_descision_timer, 0)
                     elif pop_up_close_button.collidepoint(event.pos):
@@ -549,6 +589,11 @@ while running:
                                 coal_mine_count -= removed_count
                             elif replaced_building == 'datacenters':
                                 datacenter_count -= removed_count
+                            elif replaced_building == 'uranium mines':
+                                exploited_african_nations -= removed_count
+                            elif replaced_building == 'oil mines':
+                                middile_eastern_nations -= removed_count
+                            
                             wind_turbine_count += removed_count
                             pop_up_alert_open = False
                             py.time.set_timer(pop_up_descision_timer, 0)
@@ -657,13 +702,13 @@ while running:
         # Handler for keyboard inputs
         if event.type == py.KEYDOWN:
             if configs.DEVELOPER_MODE == True:
-                # Developer cheatcode for money decreasing
+                # Developer cheatcode for money increasing
                 if event.key == py.K_9:
                     money += 10000
                 
-                # Developer cheatcode for testing loseing 
+                # Developer cheatcode for testing money decreasig 
                 if event.key == py.K_8:
-                    paused = True
+                    money -= 10000
 
                 # Developer cheatcode for adding coal
                 if event.key == py.K_7:
@@ -691,9 +736,31 @@ while running:
 
                 # Developer cheatcode for triggering pop up
                 if event.key == py.K_1:
+                    random_options = ["coal power plants", 'oil refineries', 'coal mines', 'datacenters', 'uranium mines', 'oil mines']
+                    replaced_building = random.choice(random_options)
+                    if replaced_building == 'coal power plants':
+                        removed_count = random.randint(0, coal_plant_count)
+                    elif replaced_building == 'oil refineries':
+                        removed_count = random.randint(0, oil_refinery_count)
+                    elif replaced_building == 'coal mines':
+                        removed_count = random.randint(0, coal_mine_count)
+                    elif replaced_building == 'datacenters':
+                        removed_count = random.randint(0, datacenter_count)
+                    elif replaced_building == 'uranium mines':
+                        removed_count = random.randint(0, exploited_african_nations)
+                    elif replaced_building == 'oil mines':
+                        removed_count = random.randint(0, middile_eastern_nations)
                     pop_up_alert_open = True
                     pop_up_alert_timer = 10
                     py.time.set_timer(pop_up_descision_timer, 1000)
+
+                # Developer cheatcode for triggering victory
+                if event.key == py.K_w:
+                    environmental_destruction += 100
+
+                # Developer cheatcode for triggering losing
+                if event.key == py.K_l:
+                    money -= 1999999999999999999999
 
     if paused == False:
         screen.fill(background_colour)
@@ -783,6 +850,8 @@ while running:
             screen.blit(little_wind_turbine_button_img, position)
 
         money_counter = font.render(f"Money: {money}", True, (0, 0, 0))
+        environmental_destruction_counter = small_font.render(f"Environmental Destruction: {environmental_destruction:.2f}/100", True, (0, 0, 0))
+        screen.blit(environmental_destruction_counter, (340, 20))
         screen.blit(money_counter, (20, 50))
 
         # Resources go here:
@@ -836,7 +905,7 @@ while running:
             electricity_shortage = True
             electricity = 0
             datacenter_count = max(0, datacenter_count - 1)
-        elif electricity >= 2 or (coal_plant_count + (oil_refinery_count * 10)) == datacenter_count:
+        elif electricity >= 2 or (coal_plant_count + (oil_refinery_count * 10) + (nuclear_plant_count * 100)) == datacenter_count:
             electricity_shortage = False
         electricity = min(999, electricity)
 
@@ -847,11 +916,11 @@ while running:
 
         if electricity_shortage:
             pass 
-        elif (coal_plant_count + (oil_refinery_count * 10)) == datacenter_count:
+        elif (coal_plant_count + (oil_refinery_count * 10) + (nuclear_plant_count * 100)) == datacenter_count:
             electricity_neutral = True
-        elif datacenter_count > (coal_plant_count + (oil_refinery_count * 10)):
+        elif datacenter_count > (coal_plant_count + (oil_refinery_count * 10) + (nuclear_plant_count * 100)):
             electricity_deficit = True
-        elif (coal_plant_count + (oil_refinery_count * 10)) > datacenter_count:
+        elif (coal_plant_count + (oil_refinery_count * 10) + (nuclear_plant_count * 100)) > datacenter_count:
             electricity_surplus = True
         
         electricity_shortage_alert = font.render("Electricity Shortage!", True, (255, 0, 0))
@@ -992,9 +1061,11 @@ while running:
             positive_influence_counter = font.render(f"Supporting: {supporting}", True, (0, 0, 0))
             middile_eastern_nations_counter = font.render(f"Middile eastern nations: {middile_eastern_nations}", True, (0, 0, 0))
             deforestation_laws_counter = font.render(f"Deforestation laws: {deforestation_laws}/5", True, (0, 0, 0))
+            exploited_african_nations_counter = font.render(f"Exploited african nations: {exploited_african_nations}", True, (0, 0, 0))
             screen.blit(menu_title, (menu.x + 20, menu.y + 20))
             screen.blit(middile_eastern_nations_counter, (menu.x + 20, menu.y + 240))
             screen.blit(deforestation_laws_counter, (menu.x + 20, menu.y + 280))
+            screen.blit(exploited_african_nations_counter, (menu.x + 20, menu.y + 320))
             screen.blit(positive_influence_counter, (menu.x + 20, menu.y + 55))
             screen.blit(negative_influence_counter, (menu.x + 20, menu.y + 90))
 
@@ -1072,7 +1143,7 @@ while running:
 
             py.draw.rect(screen, (100, 255, 100), pop_up_pay_button)
             py.draw.rect(screen, (0, 0, 0), pop_up_pay_button, 2)
-            pop_up_pay_text = extrasmall_font.render("Lobby parliment, cost: 3000", True, (0, 0, 0))
+            pop_up_pay_text = extrasmall_font.render("Lobby parliment, cost: 10000", True, (0, 0, 0))
             pop_up_pay_rect = pop_up_pay_text.get_rect(center=pop_up_pay_button.center)
             screen.blit(pop_up_pay_text, pop_up_pay_rect)
 
