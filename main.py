@@ -55,6 +55,7 @@ nuclear_reactor_cost = 1000
 uranium = 0
 exploited_african_nations = 0
 environmental_destruction = 0
+information_page = 1
 clock = py.time.Clock()
 # Default for replaced building
 
@@ -91,7 +92,7 @@ tree_img = py.image.load('models/tree-fix.bmp')
 parliment_button = py.image.load('models/parliment.bmp')
 coal_plant = py.image.load('models/coal.bmp')
 minecart_img = py.image.load('models/minecart.bmp')
-settings_img = py.image.load('models/settings.bmp')
+information_img = py.image.load('models/information.bmp')
 datacenter_button_img = py.image.load('models/datacenter.bmp')
 arrow_img = py.image.load('models/arrow.bmp')
 other_arrow_img = py.image.load("models/otherarrow.bmp")
@@ -237,13 +238,13 @@ wind_turbine_positions = []
 coal_button_img.set_colorkey((255, 0, 0))
 coal_button_rect = coal_button_img.get_rect(topleft=(5, 100))
 
-settings_scale = 0.05
-settings_img = py.transform.scale(
-    settings_img,
-    (int(settings_img.get_width() * settings_scale), int(settings_img.get_height() * settings_scale)),
+information_scale = 0.36
+information_img = py.transform.scale(
+    information_img,
+    (int(information_img.get_width() * information_scale), int(information_img.get_height() * information_scale)),
 )
-settings_img.set_colorkey((255, 0, 0))
-settings_button_rect = settings_img.get_rect(bottomright=(width - 10, height - 10))
+information_img.set_colorkey((255, 0, 0))
+information_button_rect = information_img.get_rect(bottomright=(width - 10, height + 2))
 
 save_scale = 0.11
 save_img = py.transform.scale(
@@ -251,7 +252,7 @@ save_img = py.transform.scale(
     (int(save_img.get_width() * save_scale), int(save_img.get_height() * save_scale)),
 )
 save_img.set_colorkey((255, 0, 0))
-save_button_rect = save_img.get_rect(bottomright=(settings_button_rect.left - 10, height - 10))
+save_button_rect = save_img.get_rect(bottomright=(information_button_rect.left - 10, height - 10))
 
 tree_button_rect = tree_img.get_rect(topleft=(tree_x, tree_y))
 parliment_button_rect = parliment_button.get_rect(topleft=(parliment_x, parliment_y))
@@ -291,7 +292,8 @@ def save_game():
         'nuclear_plant_count': nuclear_plant_count,
         'nuclear_reactor_cost': nuclear_reactor_cost,
         'environmental_destruction': environmental_destruction,
-        'exploited_african_nations': exploited_african_nations
+        'exploited_african_nations': exploited_african_nations,
+        'uranium': uranium
     }
     # Write dictionary to json file
     with open(save_file, 'w') as f:
@@ -313,7 +315,6 @@ def load_game():
         money = data['money']
         coal = data['coal']
         oil = data['oil']
-        uranium = data['uranium']
         electricity = data['electricity']
         middile_eastern_nations = data['middile_eastern_nations']
         deforestation_laws = data['deforestation_laws']
@@ -350,10 +351,12 @@ war_button = py.Rect(menu.x + 240, menu.y + 160, 340, 40)
 deforestation_law_button = py.Rect(menu.x + 20, menu.y + 200, 300, 40)
 exploit_african_nation_button = py.Rect(menu.x + 340, menu.y + 200, 300, 40)
 
-# Settings menu graphics
-settings_open = False
-settings = py.Rect((width // 6, height // 6, 800, 600))
-settings_close_button = py.Rect(settings.right - 120, settings.bottom - 60, 100, 40)
+# Information menu graphics
+information_open = False
+information = py.Rect((width // 6, height // 6, 800, 600))
+information_close_button = py.Rect(information.right - 120, information.bottom - 60, 100, 40)
+information_arrow_button_rect = arrow_img.get_rect(topleft=(information.left + 500, information.top + 500))
+information_other_arrow_button_rect = other_arrow_img.get_rect(topleft=(information.left + 10, information.top + 500))
 
 # Save/Load menu graphics
 save_open = False
@@ -378,6 +381,11 @@ minecart_img.set_colorkey((255, 0, 0))
 minecart_rect = minecart_img.get_rect(topleft=(coal_button_rect.x + 8, coal_button_rect.y + coal_button_rect.height - 30))
 nuclear_plant_rect = nuclear_reactor_img.get_rect(topleft=(minecart_rect.x, minecart_rect.y - 40))
 datacenter_rect = datacenter_button_img.get_rect(topleft=(10, 350))
+parliment_information_scale = 0.025
+parliment_information_image = py.transform.scale(
+    parliment_button,
+    (int(parliment_button.get_width() * parliment_scale), int(parliment_button.get_height() * parliment_scale)),
+)
 # Handler for inputs
 while running:
     if money < 0:
@@ -440,7 +448,7 @@ while running:
                 money += oil_refinery_count * 5
                 oil -= oil_refinery_count
                 oil = min(999, oil)
-                environmental_destruction += (oil_refinery_count / 50)
+                environmental_destruction += (oil_refinery_count / 30)
 
         if event.type == middile_eastern_income_event:
             if not paused:
@@ -474,7 +482,7 @@ while running:
                     removed_count = random.randint(0, middile_eastern_nations)
                 pop_up_alert_open = True
                 menu_open = False
-                settings_open = False
+                information_open = False
                 pop_up_alert_timer = 10
                 py.time.set_timer(pop_up_descision_timer, 1000)
                 # Its intentional that it can sometimes ask to replace 0 buildings
@@ -529,7 +537,8 @@ while running:
         if event.type == wind_turbine_cleaning:
             if not paused:
                 money -= (wind_turbine_count * 10)
-                environmental_destruction -= (wind_turbine_count / 10)
+                environmental_destruction = max(0, environmental_destruction - (wind_turbine_count / 10))
+                # supposed to make it so environmental destruction cant go below 0 
         
         if event.type == py.MOUSEBUTTONDOWN:
             if event.button == 1: # Left click
@@ -560,7 +569,7 @@ while running:
                         pop_up_alert_open = False
                         pop_up_alert_timer = 10
                         menu_open = False
-                        settings_open = False
+                        information_open = False
                         save_open = False
                         wind_turbine_count = 0
                         coal_plant_positions.clear()
@@ -577,6 +586,7 @@ while running:
                         nuclear_meltdown = False
                         exploited_african_nations = 0
                         environmental_destruction = 0
+                        information_page = 1
 
                 elif pop_up_alert_open:
                     if pop_up_pay_button.collidepoint(event.pos):
@@ -625,9 +635,15 @@ while running:
                         supporting = max(0, supporting - 100)
                         apposed = min(435, apposed + 100)
 
-                elif settings_open:
-                    if settings_close_button.collidepoint(event.pos):
-                        settings_open = False
+                elif information_open:
+                    if information_close_button.collidepoint(event.pos):
+                        information_open = False
+                    if information_arrow_button_rect.collidepoint(event.pos):
+                        if information_page < 4:
+                            information_page += 1
+                    if information_other_arrow_button_rect.collidepoint(event.pos):
+                        if information_page > 1:
+                            information_page -= 1
 
                 elif save_open:
                     if save_close_button.collidepoint(event.pos):
@@ -646,7 +662,8 @@ while running:
 
                     if arrow_button_rect.collidepoint(event.pos):
                         if page >= 1:
-                            page += 1
+                            if page < 2:
+                                page += 1
 
                     if other_arrow_button_rect.collidepoint(event.pos):
                         if page > 1:
@@ -654,16 +671,16 @@ while running:
 
                     if parliment_button_rect.collidepoint(event.pos):
                         menu_open = True
-                        settings_open = False
+                        information_open = False
                     
-                    if settings_button_rect.collidepoint(event.pos):
-                        settings_open = True
+                    if information_button_rect.collidepoint(event.pos):
+                        information_open = True
                         menu_open = False
 
                     if save_button_rect.collidepoint(event.pos):
                         save_open = True
                         menu_open = False
-                        settings_open = False
+                        information_open = False
                         save_feedback = ""
 
                     if page == 1:
@@ -777,7 +794,7 @@ while running:
 
         screen.blit(parliment_button, parliment_button_rect)
 
-        screen.blit(settings_img, settings_button_rect)
+        screen.blit(information_img, information_button_rect)
 
         screen.blit(save_img, save_button_rect)
 
@@ -1099,15 +1116,141 @@ while running:
             close_text = extrasmall_font.render("Close", True, (0, 0, 0))
             close_rect = close_text.get_rect(center=menu_close_button.center)
             screen.blit(close_text, close_rect)
-        if settings_open:
-            py.draw.rect(screen, (255, 255, 255), settings)
-            py.draw.rect(screen, (0, 0, 0), settings, 5)
+        if information_open:
+            py.draw.rect(screen, (255, 255, 255), information)
+            py.draw.rect(screen, (0, 0, 0), information, 5)
 
-            settings_title = font.render("Settings", True, (0, 0, 0))
-            screen.blit(settings_title, (settings.x + 20, settings.y + 20))
+            py.draw.rect(screen, (255, 100, 100), information_close_button)
+            py.draw.rect(screen, (0, 0, 0), information_close_button, 2)
+            information_close_text = extrasmall_font.render("Close", True, (0, 0, 0))
+            information_close_rect = information_close_text.get_rect(center=information_close_button.center)
+            screen.blit(information_close_text, information_close_rect)
+            screen.blit(arrow_img, information_arrow_button_rect)
+            screen.blit(other_arrow_img, information_other_arrow_button_rect)
+            if information_page == 1:
+                information_title_2 = font.render("Information: General", True, (0, 0, 0))
+                general_information_1 = small_font.render("Victory: Victory is achived by reaching 100 environmental destruction", True, (0, 0, 0))
+                general_information_2 = small_font.render("Defeat: You lose by your money going under 0", True, (0, 0, 0))
+                general_information_3 = small_font.render("Money: You gain money through clicking the tree, or from buildings", True, (0, 0, 0))
+                general_information_4 = small_font.render("Environmental Destruction: You gain environmental destruction from", True, (0, 0, 0))
+                general_information_4_2 = small_font.render("buildings", True, (0, 0, 0))
+                general_information_5 = small_font.render("Pop Up Events: Pop up events replace a certain number of your buildings or", True, (0, 0, 0))
+                general_information_5_2 = small_font.render("none of them with wind turbines every 90 secconds, you can stop this by", True, (0, 0, 0))
+                general_information_5_3 = small_font.render("paying $10000", True, (0, 0, 0))
+                general_information_6 = small_font.render("Wind Turbines: Wind turbines make you lose money and decrease", True, (0, 0, 0))
+                general_information_6_2 = small_font.render("environmental destruction", True, (0, 0, 0))
+                screen.blit(information_title_2, (information.x + 20, information.y + 20))
+                screen.blit(general_information_1, (information.x + 20, information.y + 60))
+                screen.blit(general_information_2, (information.x + 20, information.y + 100))
+                screen.blit(general_information_3, (information.x + 20, information.y + 140))
+                screen.blit(general_information_4, (information.x + 20, information.y + 180))
+                screen.blit(general_information_4_2, (information.x + 20, information.y + 200))
+                screen.blit(general_information_5, (information.x + 20, information.y + 240))
+                screen.blit(general_information_5_2, (information.x + 20, information.y + 260))
+                screen.blit(general_information_5_3, (information.x + 20, information.y + 280))
+                screen.blit(general_information_6, (information.x + 20, information.y + 320))
+                screen.blit(general_information_6_2, (information.x + 20, information.y + 340))
+            if information_page == 2:
+                information_title_2 = font.render("Information: Buildings", True, (0, 0, 0))
+                screen.blit(information_title_2, (information.x + 20, information.y + 20))
+                information_coal_rect = coal_button_img.get_rect(topleft=(information.left + 10, information.top + 30))
+                information_minecart_rect = minecart_img.get_rect(topleft=(information.left + 20, information.top + 180))
+                information_datacenter_rect = datacenter_img.get_rect(topleft=(information.left + 20, information.top + 255))
+                information_oil_rect = oil_refinery_img.get_rect(topleft=(information.left + 400, information.top + 30))
+                information_nuclear_rect = nuclear_reactor_img.get_rect(topleft=(information.left + 400, information.top + 150))
+                screen.blit(coal_button_img, information_coal_rect)
+                screen.blit(minecart_img, information_minecart_rect)
+                screen.blit(datacenter_button_img, information_datacenter_rect)
+                screen.blit(oil_refinery_img, information_oil_rect)
+                screen.blit(nuclear_reactor_img, information_nuclear_rect)
+                building_information_1 = extrasmall_font.render("Coal Power Plant", True, (0, 0 ,0))
+                building_information_1_2 = extrasmall_font.render("Causes 0.01 Environmental Destruction", True, (0, 0, 0))
+                building_information_1_3 = extrasmall_font.render("per building", True, (0, 0, 0))
+                building_information_1_4 = extrasmall_font.render("Produces 1 electricty", True, (0, 0, 0))
+                screen.blit(building_information_1, (information.x + 140, information.y + 100))
+                screen.blit(building_information_1_2, (information.x + 140, information.y + 120))
+                screen.blit(building_information_1_3, (information.x + 140, information.y + 140))
+                screen.blit(building_information_1_4, (information.x + 140, information.y + 160))
+                building_information_2 = extrasmall_font.render("Coal Mine", True, (0, 0, 0))
+                building_information_2_1 = extrasmall_font.render("Produces 1 coal", True, (0, 0, 0))
+                screen.blit(building_information_2, (information.x + 140, information.y + 210))
+                screen.blit(building_information_2_1, (information.x + 140, information.y + 240))
+                building_information_3 = extrasmall_font.render("Datacenter", True, (0, 0, 0))
+                building_information_3_1 = extrasmall_font.render("Causes 0.014 Environmental Destruction", True, (0, 0, 0))
+                building_information_3_2 = extrasmall_font.render("Per building", True, (0, 0, 0))
+                screen.blit(building_information_3, (information.x + 160, information.y + 295))
+                screen.blit(building_information_3_1, (information.x + 160, information.y + 315))
+                screen.blit(building_information_3_2, (information.x + 160, information.y + 335))
+                building_information_4 = extrasmall_font.render("Oil Refinery", True, (0, 0, 0))
+                building_information_4_1 = extrasmall_font.render("Causes 0.033 Environmental Destruction", True, (0, 0, 0))
+                building_information_4_2 = extrasmall_font.render("Per building", True, (0, 0, 0))
+                building_information_4_3 = extrasmall_font.render("Produces 10 electricty", True, (0, 0, 0))
+                screen.blit(building_information_4, (information.x + 520, information.y + 80))
+                screen.blit(building_information_4_1, (information.x + 520, information.y + 100))
+                screen.blit(building_information_4_2, (information.x + 520, information.y + 120))
+                screen.blit(building_information_4_3, (information.x + 520, information .y + 140))
+                building_information_5 = extrasmall_font.render("Nuclear reactor", True, (0, 0, 0,))
+                building_information_5_1 = extrasmall_font.render("Causes 0 environmental destruction", True, (0, 0, 0))
+                building_information_5_2 = extrasmall_font.render("Per building", True, (0, 0, 0))
+                building_information_5_3 = extrasmall_font.render("Produces 100 electricity", True, (0, 0, 0))
+                screen.blit(building_information_5, (information.x + 500, information.y + 193))
+                screen.blit(building_information_5_1, (information.x + 500, information.y + 213))
+                screen.blit(building_information_5_2, (information.x + 500, information.y + 233))
+                screen.blit(building_information_5_3, (information.x + 500, information .y + 253))
+            if information_page == 3:
+                information_title_3 = font.render("Information: Resources", True, (0, 0, 0))
+                resource_information_1 = small_font.render("Resources: Some buildings require resources to run and will consume one of", True, (0, 0, 0))
+                resource_information_1_2 = small_font.render("their specified resource per seccond", True, (0, 0, 0))
+                resource_information_2 = small_font.render("Resources have 4 states; Surplus, neutral, deficit, and shortage", True, (0, 0, 0))
+                resource_information_3 = small_font.render("Surplus: Gaining more resource than your using", True, (0, 0, 0))
+                resource_information_3_2 = small_font.render("Neutral: Gaining same amount of resource as your using", True, (0, 0, 0))
+                resource_information_3_3 = small_font.render("Deficit: Using more resource than youre gaining", True, (0, 0, 0))
+                resource_information_3_4 = small_font.render("Shortage: Having 0 resources and still losing resources", True, (0, 0, 0))
+                resource_information_4 = small_font.render("Being in a shortage will make you lose buildings until your neutral", True, (0, 0, 0))
+                resource_information_5 = small_font.render("Being in a uranium shortage will trigger a meltdown", True, (0, 0, 0))
+                resource_information_6 = small_font.render('Meltdowns: Meltdowns make you lose $100000 and all of your buildings',  True, (0, 0, 0))
+                resource_information_6_2 = small_font.render("however they add 50 environmental destruction", True, (0, 0, 0))
+                screen.blit(information_title_3, (information.x + 20, information.y + 20))
+                screen.blit(resource_information_1, (information.x + 20, information.y + 60))
+                screen.blit(resource_information_1_2, (information.x + 20, information.y + 80))
+                screen.blit(resource_information_3, (information.x + 20, information.y + 120))
+                screen.blit(resource_information_3_2, (information.x + 20, information.y + 160))
+                screen.blit(resource_information_3_3, (information.x + 20, information.y + 200))
+                screen.blit(resource_information_3_4, (information.x + 20, information.y + 240))
+                screen.blit(resource_information_4, (information.x + 20, information.y + 280))
+                screen.blit(resource_information_5, (information.x + 20, information.y + 320))
+                screen.blit(resource_information_6, (information.x + 20, information.y + 360))
+                screen.blit(resource_information_6_2, (information.x + 20, information.y + 380))
+            if information_page == 4:
+                information_title_4 = font.render("Information: Parliment", True, (0, 0, 0))
+                information_parliment_rect = parliment_information_image.get_rect(topleft=(information.left + 440, information.top))
+                screen.blit(parliment_information_image, information_parliment_rect)
+                screen.blit(information_title_4, (information.x + 20, information.y + 20))
+                parliment_information = small_font.render("Support and opposistion: There are 435 seats in parliment you need a certain", True, (0, 0, 0))
+                parliment_information_2 = small_font.render("amount of support to perform certain things when performing them you lose", True, (0, 0, 0))
+                parliment_information_2_2 = small_font.render("half of the support required to do them", True, (0, 0, 0))
+                parliment_information_3 = small_font.render("Lobbying efforts: lobbying costs $1000 and adds 10 support immediatley this", True, (0, 0, 0))
+                parliment_information_3_2 = small_font.render("can be repeated 44 times, on top of this every 100 secconds youll lose $1000", True, (0, 0, 0))
+                parliment_information_3_3 = small_font.render("and gain 10 support", True, (0, 0, 0))
+                parliment_information_4 = small_font.render("Deforestation Laws: Deforestation laws increase how much money you gain", True, (0, 0, 0))
+                parliment_information_4_2 = small_font.render("from cicking the tree and can be stacked 5 times", True, (0, 0, 0))
+                parliment_information_5 = small_font.render("Invade Middile Eastern Nation: Invading a middile eastern nations gives you", True, (0, 0, 0))
+                parliment_information_5_2 = small_font.render("+1 oil per seccond and can be repeated infinitly", True, (0, 0, 0))
+                parliment_information_6 = small_font.render("Exploit African Nation: Exploiting an african nations gives you +1 uranium", True, (0, 0, 0))
+                parliment_information_6_2 = small_font.render("per seccond and can be repeated infinitly", True, (0, 0, 0))
+                screen.blit(parliment_information, (information.x + 20, information.y + 85))
+                screen.blit(parliment_information_2, (information.x + 20, information.y + 105))
+                screen.blit(parliment_information_2_2, (information.x + 20, information.y + 125))
+                screen.blit(parliment_information_3, (information.x + 20, information.y + 165))
+                screen.blit(parliment_information_3_2, (information.x + 20, information.y + 185))
+                screen.blit(parliment_information_3_3, (information.x + 20, information.y + 205))
+                screen.blit(parliment_information_4, (information.x + 20, information.y + 245))
+                screen.blit(parliment_information_4_2, (information.x + 20, information.y + 265))
+                screen.blit(parliment_information_5, (information.x + 20, information.y + 305))
+                screen.blit(parliment_information_5_2, (information.x + 20, information.y + 325))
+                screen.blit(parliment_information_6, (information.x + 20, information.y + 365))
+                screen.blit(parliment_information_6_2, (information.x + 20, information.y + 385))
 
-            py.draw.rect(screen, (255, 100, 100), settings_close_button)
-            py.draw.rect(screen, (0, 0, 0), settings_close_button, 2)
         if save_open:
             py.draw.rect(screen, (255, 255, 255), save_menu)
             py.draw.rect(screen, (0, 0, 0), save_menu, 5)
