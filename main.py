@@ -9,6 +9,10 @@ import json
 import pygame as py
 import configs
 import random
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent
+MODELS_DIR = BASE_DIR / 'models'
 
 py.init()
 
@@ -87,20 +91,20 @@ font = py.font.SysFont(None, configs.SMALL_FONT_SIZE)
 large_font = py.font.SysFont(None, configs.LARGE_FONT_SIZE)
 
 # Load the static background image and define the base fill colour
-background_image = py.image.load('models/background.bmp')
-tree_img = py.image.load('models/tree-fix.bmp')
-parliment_button = py.image.load('models/parliment.bmp')
-coal_plant = py.image.load('models/coal.bmp')
-minecart_img = py.image.load('models/minecart.bmp')
-information_img = py.image.load('models/information.bmp')
-datacenter_button_img = py.image.load('models/datacenter.bmp')
-arrow_img = py.image.load('models/arrow.bmp')
-other_arrow_img = py.image.load("models/otherarrow.bmp")
-oil_refinery_img = py.image.load("models/oil refinery.bmp")
-wind_turbine_img = py.image.load("models/Wind_turbine_icon.bmp")
-nuclear_reactor_img = py.image.load("models/Nuclear plant icon.bmp")
-meltdown_alert = py.image.load("models/meltdown.bmp")
-save_img = py.image.load('models/save.bmp')
+background_image = py.image.load(str(MODELS_DIR / 'background.bmp'))
+tree_img = py.image.load(str(MODELS_DIR / 'tree-fix.bmp'))
+parliment_button = py.image.load(str(MODELS_DIR / 'parliment.bmp'))
+coal_plant = py.image.load(str(MODELS_DIR / 'coal.bmp'))
+minecart_img = py.image.load(str(MODELS_DIR / 'minecart.bmp'))
+information_img = py.image.load(str(MODELS_DIR / 'information.bmp'))
+datacenter_button_img = py.image.load(str(MODELS_DIR / 'datacenter.bmp'))
+arrow_img = py.image.load(str(MODELS_DIR / 'arrow.bmp'))
+other_arrow_img = py.image.load(str(MODELS_DIR / 'otherarrow.bmp'))
+oil_refinery_img = py.image.load(str(MODELS_DIR / 'oil refinery.bmp'))
+wind_turbine_img = py.image.load(str(MODELS_DIR / 'Wind_turbine_icon.bmp'))
+nuclear_reactor_img = py.image.load(str(MODELS_DIR / 'Nuclear plant icon.bmp'))
+meltdown_alert = py.image.load(str(MODELS_DIR / 'meltdown.bmp'))
+save_img = py.image.load(str(MODELS_DIR / 'save.bmp'))
 
 TRANSPARENT_COLOUR = (0, 0, 0)
 tree_img.set_colorkey(TRANSPARENT_COLOUR)
@@ -181,7 +185,7 @@ little_coal_button_img.set_colorkey((255, 0, 0))
 
 # Keep an unscaled copy of the datacenter art around so we can also make a
 # "little" version later, same as coal_plant is kept unscaled for little_coal_button_img
-datacenter_img = py.image.load('models/datacenter.bmp')
+datacenter_img = py.image.load(str(MODELS_DIR / 'datacenter.bmp'))
 
 little_datacenter_scale = 0.15
 little_datacenter_button_img = py.transform.scale(
@@ -264,7 +268,9 @@ meltdown_alert_rect = meltdown_alert.get_rect()
 meltdown_alert_rect.center = screen.get_rect().center
 
 # Save file location
-save_file = 'savegame.json'
+save_directory = Path.home() / 'Library' / 'Application Support' / 'Clicker Game'
+save_directory.mkdir(parents=True, exist_ok=True)
+save_file = save_directory / 'savegame.json'
 
 # Function to save game stats into a json file
 def save_game():
@@ -296,7 +302,7 @@ def save_game():
         'uranium': uranium
     }
     # Write dictionary to json file
-    with open(save_file, 'w') as f:
+    with save_file.open('w', encoding='utf-8') as f:
         json.dump(save_data, f, indent=4)
     save_feedback = "Game saved!"
 
@@ -309,7 +315,7 @@ def load_game():
     global environmental_destruction, exploited_african_nations, uranium
     try:
         # Read the dictionary from the json file
-        with open(save_file, 'r') as f:
+        with save_file.open('r', encoding='utf-8') as f:
             data = json.load(f)
         # Restore all the stats
         money = data['money']
@@ -1305,4 +1311,3 @@ while running:
 
 py.quit()
 sys.exit()
-
